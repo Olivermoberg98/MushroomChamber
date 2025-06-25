@@ -1,0 +1,15 @@
+Item,Part Name,Quantity,Unit Price (SEK),Total Price (SEK),Supplier,Part Link,Notes
+1,ESP32 Dev Board,1,80,80,Kjell & Co or Amazon,https://...,Main microcontroller
+2,BME280 Sensor Module,1,60,60,Amazon,https://...,Temperature & humidity sensor
+3,Relay Module (2-Ch),1,50,50,AliExpress,https://...,Controls fan and humidifier
+4,Mini Ultrasonic Humidifier,1,150,150,Clas Ohlson,https://...,USB-powered
+5,12V 120mm Fan (Akasa AK-174BKT-B),1,140,140,Electrokit.se,https://...,Air circulation
+6,LED Strip (12V 6000K IP65),1,220,220,Amazon.se,https://...,Light for dark room
+7,12V PSU (3A),1,100,100,Amazon,https://...,Powers fan and LED strip
+8,Buck Converter (12V→5V),1,50,50,Amazon,https://...,Powers ESP32 & humidifier
+9,N-Channel MOSFET (IRLZ44N),1,15,15,Electrokit,https://...,Controls LED strip
+10,Gate Resistor (220 Ω),1,1,1,Electrokit,,For MOSFET control
+11,Pull-down Resistor (10 kΩ),1,1,1,Electrokit,,For MOSFET gate
+12,Plastic Storage Box (IKEA SAMLA 65L),1,100,100,IKEA,https://...,Growing chamber
+13,Breadboard + Jumper Wires,1,70,70,Amazon,,For prototyping
+14,Micropore Tape or Polyfill,1,30,30,Apoteket,,Filtered ventilation

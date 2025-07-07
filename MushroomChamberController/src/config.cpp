@@ -3,37 +3,51 @@
 #include <time.h>
 #include <FastLED.h>
 
+extern MushroomConfig currentConfig;
+extern GrowthPhase currentPhase;
+
+PhaseConfig getActivePhaseConfig() {
+  switch (currentPhase) {
+    case INCUBATION:
+      return currentConfig.incubation;
+    case PRIMORDIA_FORMATION:
+      return currentConfig.primordiaFormation;
+    case FRUITING:
+      return currentConfig.fruiting;
+    default:
+      return currentConfig.fruiting;
+  }
+}
+
 MushroomConfig getMushroomConfig(MushroomType type) {
   switch (type) {
     case SHIITAKE:
       return {
         "Shiitake",
-        16.0, 1.5,       // Temperature and tolerance
-        90.0, 5.0,       // Humidity and tolerance
-        1013.0, 5.0,     // Pressure (atmospheric default), tolerance
-        6, 18,           // Light start/end
-        CRGB::White      // Light color (neutral/cool daylight)
+        // Incubation phase
+        {
+          22.0, 1.0,
+          95.0, 5.0,
+          1013.0, 8.0,
+          0, 0, CRGB::Black  // No light
+        },
+        // Primordia formation
+        {
+          15.0, 1.0,
+          95.0, 5.0,
+          1013.0, 8.0,
+          8, 12, CRGB::White  // short light
+        },
+        // Fruiting phase
+        {
+          17.0, 1.0,
+          85.0, 5.0,
+          1013.0, 8.0,
+          8, 20, CRGB::White  // longer light
+        }
       };
-
-    case OYSTER:
-      return {
-        "Oyster",
-        22.0, 1.0,
-        85.0, 5.0,
-        1013.0, 5.0,
-        8, 20,
-        CRGB::Blue
-      };
-
     default:
-      return {
-        "Default",
-        20.0, 2.0,
-        85.0, 5.0,
-        1013.0, 5.0,
-        8, 20,
-        CRGB::White
-      };
+      return {/* default config */};
   }
 }
 

@@ -2,21 +2,35 @@
 #ifndef MUSHROOM_TYPES_H
 #define MUSHROOM_TYPES_H
 
-struct MushroomConfig {
-  const char* name;
+enum GrowthPhase {
+  INCUBATION,
+  PRIMORDIA_FORMATION,
+  FRUITING
+};
+
+
+struct PhaseConfig {
   float targetTemperature;
-  float temperatureTolerance;  // e.g., ±1°C
+  float temperatureTolerance;
 
   float targetHumidity;
-  float humidityTolerance;     // e.g., ±5%
+  float humidityTolerance;
 
   float targetPressure;
-  float pressureTolerance;     // optional, for CO2-aware systems
+  float pressureTolerance;
 
-  int lightStartHour;     // e.g., 8  (08:00)
-  int lightEndHour;       // e.g., 20 (20:00)
+  int lightStartHour;
+  int lightEndHour;
   CRGB lightColor;
 };
+
+struct MushroomConfig {
+  const char* name;
+  PhaseConfig incubation;
+  PhaseConfig primordiaFormation;
+  PhaseConfig fruiting;
+};
+
 
 enum MushroomType {
   OYSTER,

@@ -4,10 +4,15 @@
 #include "led.h"
 #include "config.h"
 
+// Global configuration and current phase
 MushroomConfig currentConfig;
+GrowthPhase currentPhase = INCUBATION; // Change as needed: INCUBATION, PRIMORDIA_FORMATION, FRUITING
 
 void setup() {
   Serial.begin(115200);
+
+  // Set the mushroom type (example: Shiitake)
+  currentConfig = getMushroomConfig(SHIITAKE);
   
   // Initialize sensors and actuators
   setupSensors();
@@ -18,24 +23,32 @@ void setup() {
 
 void loop() {
   float temp, humidity, pressure;
-  
-  // Read temperature, humidity, and pressure
-  temp = readTemperature();  
-  humidity = readHumidity();  
-  pressure = readPressure(); 
-  
-  // Print the data
-  Serial.print("Temperature: ");
+
+  // Read sensors
+  temp = readTemperature();
+  humidity = readHumidity();
+  pressure = readPressure();
+
+  // Print to serial
+  Serial.print("Phase: ");
+  if (currentPhase == INCUBATION) Serial.print("Incubation");
+  else if (currentPhase == PRIMORDIA_FORMATION) Serial.print("Primordia");
+  else if (currentPhase == FRUITING) Serial.print("Fruiting");
+  Serial.print(" | Temp: ");
   Serial.print(temp);
   Serial.print(" °C, Humidity: ");
   Serial.print(humidity);
-  Serial.print(" %");
-  Serial.print(", Pressure: ");
+  Serial.print(" %, Pressure: ");
   Serial.print(pressure);
   Serial.println(" hPa");
-  
-  // Control fan/LEDs/humidifier based on sensor data and mushroom type
-  MushroomConfig currentConfig = getMushroomConfig(OYSTER); // Example for Oyster mushroom
 
-  delay(2000); // Wait for 2 seconds before the next loop iteration
+  // --- Get active config for the current phase ---
+  PhaseConfig activeConfig = getActivePhaseConfig();
+
+  // --- Control system based on phase config ---
+  controlVentilationCycle();         // Manages fan and humidifier pause logic
+  controlHumidity(humidity, activeConfig);  // Pass in current humidity and active config
+  controlLighting(activeConfig);     // Pass in active config with light timing/color
+
+  delay(2000); // Loop delay
 }

@@ -1,15 +1,16 @@
 Item,Part Name,Quantity,Unit Price (SEK),Total Price (SEK),Supplier,Part Link,Notes
 1,ESP32 Dev Board,1,80,80,Kjell & Co or Amazon,https://...,Main microcontroller
-2,BME280 Sensor Module,1,60,60,Amazon,https://...,Temperature & humidity sensor
-3,Relay Module (2-Ch),1,50,50,AliExpress,https://...,Controls fan and humidifier
-4,Mini Ultrasonic Humidifier,1,150,150,Clas Ohlson,https://...,USB-powered
-5,12V 120mm Fan (Akasa AK-174BKT-B),1,140,140,Electrokit.se,https://...,Air circulation
-6,LED Strip (12V 6000K IP65),1,220,220,Amazon.se,https://...,Light for dark room
-7,12V PSU (3A),1,100,100,Amazon,https://...,Powers fan and LED strip
-8,Buck Converter (12V→5V),1,50,50,Amazon,https://...,Powers ESP32 & humidifier
-9,N-Channel MOSFET (IRLZ44N),1,15,15,Electrokit,https://...,Controls LED strip
-10,Gate Resistor (220 Ω),1,1,1,Electrokit,,For MOSFET control
-11,Pull-down Resistor (10 kΩ),1,1,1,Electrokit,,For MOSFET gate
-12,Plastic Storage Box (IKEA SAMLA 65L),1,100,100,IKEA,https://...,Growing chamber
-13,Breadboard + Jumper Wires,1,70,70,Amazon,,For prototyping
-14,Micropore Tape or Polyfill,1,30,30,Apoteket,,Filtered ventilation
+2,BME280 Sensor Module,1,60,60,AliExpress,https://...,Temperature humidity pressure sensor
+3,DHT22 Sensor Module,1,50,50,AliExpress,https://...,Backup/complementary temp & humidity sensor
+4,Mini Ultrasonic Humidifier Kit,1,150,150,AliExpress,https://...,Includes mist maker & driver
+5,5V Brushless Cooling Fan (40mm),2,60,120,AliExpress,https://...,Air circulation
+6,WS2812B LED Strip (1m),2,120,240,AliExpress,https://...,5V digital RGB LEDs
+7,Universal Power Adapter (AC to 5V 3A),1,70,70,AliExpress or Amazon,https://...,Main 5V PSU
+8,N-Channel MOSFET (IRLZ44N),2,15,30,Electrokit,https://...,Switching fan + humidifier
+9,Flyback Diode (1N4007),5,1,5,AliExpress,https://...,For fan/humidifier protection
+10,Electrolytic Capacitor (1000µF 10V),2,2,4,AliExpress,https://...,For power smoothing (LEDs etc.)
+11,Breadboard (830-point),1,30,30,AliExpress,https://...,For prototyping connections
+12,Jumper Wire Set (Dupont cables),1,40,40,AliExpress,https://...,Male-Male/Female cables
+13,Resistor Kit (1/4W 600pcs),1,50,50,AliExpress,https://...,Includes 220Ω + 10kΩ etc.
+14,Plastic Storage Box (IKEA SAMLA 65L),1,100,100,IKEA,https://...,Mushroom growing chamber
+15,Synthetic Filter Paper Discs,1,40,40,AliExpress,https://...,Ventilation filtration

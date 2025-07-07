@@ -1,19 +1,29 @@
-// sensors.cpp
-
 #include "sensors.h"
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
 
-DHT dht(DHTPIN, DHTTYPE);
+
+// --- BME280 Setup ---
+Adafruit_BME280 bme;
+#define BME_ADDR 0x76
+
 
 void setupSensors() {
-  dht.begin();
+  Serial.println("Initializing sensors...");
+
+  if (!bme.begin(BME_ADDR)) {
+    Serial.println("Could not find BME280 sensor!");
+  }
 }
 
-void readTemperatureHumidity(float &temp, float &humidity) {
-  temp = dht.readTemperature();
-  humidity = dht.readHumidity();
+float readTemperature() {
+  return bme.readTemperature();
+}
 
-  if (isnan(temp) || isnan(humidity)) {
-    Serial.println("Failed to read from DHT sensor!");
-    return;
-  }
+float readHumidity() {
+  return bme.readHumidity();
+}
+
+float readPressure() {
+  return bme.readPressure() / 100.0F; // in hPa
 }

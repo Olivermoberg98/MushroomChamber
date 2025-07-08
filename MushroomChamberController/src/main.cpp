@@ -46,7 +46,7 @@ void loop() {
   PhaseConfig activeConfig = getActivePhaseConfig();
 
   // --- Control system based on phase config ---
-  controlVentilationCycle();         // Manages fan and humidifier pause logic
+  controlVentilationCycle(humidity, pressure);        // Manages fan and humidifier pause logic
   controlHumidity(humidity, activeConfig);  // Pass in current humidity and active config
   controlLighting(activeConfig);     // Pass in active config with light timing/color
 

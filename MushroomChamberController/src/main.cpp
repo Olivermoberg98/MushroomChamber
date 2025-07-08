@@ -3,6 +3,7 @@
 #include "actuators.h"
 #include "led.h"
 #include "config.h"
+#include "wifi_comm.h"
 
 // Global configuration and current phase
 MushroomConfig currentConfig;
@@ -19,6 +20,9 @@ void setup() {
   setupActuators();
   setupLeds();
   setupTime();
+
+  // Initialize WiFi
+  wifiSetup(ssid, password); // Replace with your WiFi credentials
 }
 
 void loop() {
@@ -42,6 +46,19 @@ void loop() {
   Serial.print(pressure);
   Serial.println(" hPa");
 
+  // Handle WiFi connection retry logic (non-blocking)
+  wifiRetryLoop();
+
+  if (wifiConnected()) {
+    String jsonData = createSensorJson(68.2, 22.5, 1013.1);
+    bool success = sendPostRequest(serverUrl, jsonData);
+    if (success) {
+      Serial.println("Data sent successfully!");
+    } else {
+      Serial.println("Failed to send data.");
+    }
+  }
+
   // --- Get active config for the current phase ---
   PhaseConfig activeConfig = getActivePhaseConfig();
 
@@ -50,5 +67,5 @@ void loop() {
   controlHumidity(humidity, activeConfig);  // Pass in current humidity and active config
   controlLighting(activeConfig);     // Pass in active config with light timing/color
 
-  delay(2000); // Loop delay
+  delay(3000); // Loop delay
 }

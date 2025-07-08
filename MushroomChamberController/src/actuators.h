@@ -10,7 +10,7 @@ void turnHumidifierOn();
 void turnHumidifierOff();
 
 void controlHumidity(float currentHumidity, const PhaseConfig& config);
-void controlVentilationCycle();
+void controlVentilationCycle(float humidity, float pressure);
 void controlLighting(const PhaseConfig& config);
 
 void setLEDColor(uint8_t r, uint8_t g, uint8_t b);

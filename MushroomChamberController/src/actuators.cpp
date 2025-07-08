@@ -1,6 +1,7 @@
 #include "actuators.h"
 #include "config.h"
 #include <FastLED.h>
+#include <algorithm>
 
 // --- Fan & Humidifier ---
 #define FAN_PIN 16
@@ -11,9 +12,35 @@
 #define NUM_LEDS    60
 CRGB leds[NUM_LEDS];
 
+// Score tracking
+float lastScore = -1.0;
+unsigned long lastScoreUpdate = 0;
+
+// Adaptation parameters
+unsigned long fanDurationMs = 10000;     // initial guess
+unsigned long intervalBetweenFans = 300000; // initial interval (e.g., 5 min)
+
 // --- Global Configuration ---
-extern MushroomConfig currentConfig;
+extern PhaseConfig currentConfig;
 extern GrowthPhase currentPhase; 
+
+// --- Environment Score Calculation ---
+float environmentScore(float humidity, float pressure) {
+  float hTarget = currentConfig.targetHumidity;
+  float hTol = currentConfig.humidityTolerance;
+  float pTarget = currentConfig.targetPressure;
+
+  // Humidity penalty (quadratic if outside range)
+  float hError = (humidity - hTarget) / hTol;
+  float humidityPenalty = hError * hError;
+
+  // Pressure penalty (penalize only if over)
+  float pressurePenalty = std::max(0.0f, pressure - pTarget);
+  pressurePenalty *= pressurePenalty;
+
+  // Weighted score: higher is better
+  return 1.0f / (1.0f + humidityPenalty + 0.01f * pressurePenalty);
+}
 
 // --- Ventilation Cycle Config ---
 struct VentilationCycle {
@@ -59,23 +86,49 @@ void turnOffHumidifier() {
 }
 
 // --- Smart Fan-Humidifier Coordination ---
-void controlVentilationCycle() {
+void controlVentilationCycle(float humidity, float pressure) {
   unsigned long now = millis();
 
-  if (!ventilating && (now - lastVentilationTime > ventilation.intervalMs)) {
-    // Start ventilation
+  // --- Check if it's time to start ventilation ---
+  if (!ventilating && (now - lastVentilationTime > intervalBetweenFans)) {
+    // Start fan and pause humidifier
     turnFanOn();
-    turnOffHumidifier(); // pause humidity control during ventilation
+    turnOffHumidifier();
     ventilating = true;
+
+    // Update timers and log the current environment state
     ventilationStartTime = now;
     lastVentilationTime = now;
+    lastScore = environmentScore(humidity, pressure);
+    lastScoreUpdate = now;
+
+    return; // Exit early to avoid evaluating stop logic in same loop
   }
 
-  if (ventilating && (now - ventilationStartTime > ventilation.durationMs)) {
-    // End ventilation
+  // --- Check if it's time to stop ventilation ---
+  if (ventilating && (now - ventilationStartTime > fanDurationMs)) {
     turnFanOff();
     ventilating = false;
-    // Don't turn humidifier on here — wait for RH logic
+
+    // Calculate updated environment score
+    float newScore = environmentScore(humidity, pressure);
+
+    // --- Adaptive Fan Duration ---
+    if (newScore > lastScore) {
+      fanDurationMs = min(fanDurationMs + 1000UL, 60000UL); // max 60s
+    } else {
+      fanDurationMs = max(fanDurationMs - 1000UL, 5000UL);  // min 5s
+    }
+
+    // --- Adaptive Interval Between Fans ---
+    if (newScore > lastScore) {
+      intervalBetweenFans = max(intervalBetweenFans - 10000UL, 60000UL); // min 1 min
+    } else {
+      intervalBetweenFans = min(intervalBetweenFans + 10000UL, 900000UL); // max 15 min
+    }
+
+    lastScore = newScore;
+    lastScoreUpdate = now;
   }
 }
 

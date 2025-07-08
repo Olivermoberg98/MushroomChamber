@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mushroom Chamber Dashboard</title>
+  <script>
+    async function fetchData() {
+      const res = await fetch('/api/sensor');
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('humidity').textContent = data.humidity ?? 'N/A';
+        document.getElementById('temperature').textContent = data.temperature ?? 'N/A';
+        document.getElementById('pressure').textContent = data.pressure ?? 'N/A';
+      }
+    }
+
+    setInterval(fetchData, 2000);  // Refresh every 2 sec
+    window.onload = fetchData;
+  </script>
+</head>
+<body>
+  <h1>Mushroom Chamber Dashboard</h1>
+  <p>Humidity: <span id="humidity">Loading...</span></p>
+  <p>Temperature: <span id="temperature">Loading...</span></p>
+  <p>Pressure: <span id="pressure">Loading...</span></p>
+</body>
+</html>

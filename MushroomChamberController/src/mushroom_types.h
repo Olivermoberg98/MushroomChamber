@@ -1,4 +1,4 @@
-#include <fastled.h>
+#include <FastLED.h>
 #ifndef MUSHROOM_TYPES_H
 #define MUSHROOM_TYPES_H
 

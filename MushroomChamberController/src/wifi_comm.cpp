@@ -4,8 +4,9 @@
 #include <ArduinoJson.h>
 
 // WiFi credentials
-static const char* _ssid = nullptr;
-static const char* _password = nullptr;
+const char* ssid = "your-ssid";
+const char* password = "your-password";
+const char* serverUrl = "http://your.server/api";
 
 // Retry logic state
 static unsigned long lastAttemptTime = 0;
@@ -13,15 +14,15 @@ static const unsigned long retryIntervalMs = 10000; // 10 seconds between retrie
 static bool wifiConnecting = false;
 
 void wifiSetup(const char* ssid, const char* password) {
-  _ssid = ssid;
-  _password = password;
+  ssid = ssid;
+  password = password;
 
   WiFi.mode(WIFI_STA);
 
   if (WiFi.status() != WL_CONNECTED && !wifiConnecting) {
     Serial.print("Starting WiFi connection to ");
-    Serial.println(_ssid);
-    WiFi.begin(_ssid, _password);
+    Serial.println(ssid);
+    WiFi.begin(ssid, password);
     wifiConnecting = true;
     lastAttemptTime = millis();
   }
@@ -42,11 +43,11 @@ void wifiRetryLoop() {
   if (wifiConnecting && (now - lastAttemptTime >= retryIntervalMs)) {
     Serial.println("WiFi not connected, retrying...");
     WiFi.disconnect();
-    WiFi.begin(_ssid, _password);
+    WiFi.begin(ssid, password);
     lastAttemptTime = now;
   } else if (!wifiConnecting) {
     // Not connected and not trying — start connection
-    WiFi.begin(_ssid, _password);
+    WiFi.begin(ssid, password);
     wifiConnecting = true;
     lastAttemptTime = now;
   }
@@ -82,7 +83,7 @@ bool sendPostRequest(const char* serverUrl, const String& jsonPayload) {
 }
 
 String createSensorJson(float humidity, float temperature, float pressure) {
-  StaticJsonDocument<200> doc;  // Adjust size as needed
+  JsonDocument doc;
 
   doc["humidity"] = humidity;
   doc["temperature"] = temperature;

@@ -7,7 +7,7 @@
 CRGB leds[NUM_LEDS];
 
 // --- Global Configuration ---
-extern MushroomConfig currentConfig;
+extern MushroomConfig mushroomconfig;
 
 void setupLeds() {
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
@@ -15,7 +15,7 @@ void setupLeds() {
   FastLED.show();
 }
 
-void controlLighting() {
+void controlLighting(const PhaseConfig& currentConfig) {
   static bool lightOn = false;
 
   // Get current time

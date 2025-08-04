@@ -9,7 +9,7 @@
 
 // Functions
 void setupLeds();
-void controlLighting();
+void controlLighting(const PhaseConfig& config);
 void setLEDColor(CRGB color);
 
 #endif 

@@ -7,11 +7,6 @@
 #define FAN_PIN 16
 #define HUMIDIFIER_PIN 17
 
-// --- LED Strip ---
-#define LED_PIN     5
-#define NUM_LEDS    60
-CRGB leds[NUM_LEDS];
-
 // Score tracking
 float lastScore = -1.0;
 unsigned long lastScoreUpdate = 0;
@@ -63,10 +58,6 @@ void setupActuators() {
   pinMode(HUMIDIFIER_PIN, OUTPUT);
   digitalWrite(FAN_PIN, LOW);
   digitalWrite(HUMIDIFIER_PIN, LOW);
-
-  FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
-  FastLED.clear();
-  FastLED.show();
 }
 
 void turnFanOn() {

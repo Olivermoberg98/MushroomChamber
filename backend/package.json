@@ -1,18 +1,16 @@
 {
-  "name": "backend",
+  "name": "mushroom-backend",
   "version": "1.0.0",
-  "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "dev": "node server.js",
+    "start": "npm run build --prefix vite-project && node server.js",
+    "build": "npm run build --prefix vite-project"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "recharts": "^3.1.2"
   }
 }

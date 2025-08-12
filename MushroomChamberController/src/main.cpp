@@ -22,7 +22,7 @@ void setup() {
   setupTime();
 
   // Initialize WiFi
-  wifiSetup(ssid, password); // Replace with your WiFi credentials
+  wifiSetup("#Telia", "fc22e1", "f3"); // Replace with your WiFi credentials
 }
 
 void loop() {
@@ -51,7 +51,7 @@ void loop() {
 
   if (wifiConnected()) {
     String jsonData = createSensorJson(68.2, 22.5, 1013.1);
-    bool success = sendPostRequest(serverUrl, jsonData);
+    bool success = sendPostRequest("erferv", jsonData);
     if (success) {
       Serial.println("Data sent successfully!");
     } else {

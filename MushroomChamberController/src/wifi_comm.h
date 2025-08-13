@@ -2,6 +2,7 @@
 #define WIFI_COMM_H
 
 #include <Arduino.h>
+#include <mushroom_types.h>
 
 // WiFi connection status enum for better status tracking
 enum class WiFiStatus {
@@ -31,7 +32,9 @@ String getWiFiStatusString();
 // HTTP communication functions
 bool sendPostRequest(const char* serverUrl, const String& jsonPayload);
 bool sendSensorData(float humidity, float temperature, float pressure);
-
+GrowthPhase getCurrentPhase();
+GrowthPhase stringToGrowthPhase(const String& phaseStr);
+String growthPhaseToString(GrowthPhase phase);
 // JSON utility functions
 String createSensorJson(float humidity, float temperature, float pressure);
 

@@ -121,6 +121,72 @@ String getWiFiStatusString() {
   }
 }
 
+// Add this helper function to convert string to enum
+GrowthPhase stringToGrowthPhase(const String& phaseStr) {
+  if (phaseStr == "Incubation") {
+    return INCUBATION;
+  } else if (phaseStr == "Primordia") {
+    return PRIMORDIA_FORMATION;
+  } else if (phaseStr == "Fruiting") {
+    return FRUITING;
+  } else {
+    // Default fallback
+    Serial.printf("⚠️ Unknown phase '%s', defaulting to INCUBATION\n", phaseStr.c_str());
+    return INCUBATION;
+  }
+}
+
+// Add this helper function to convert enum to string (useful for debugging)
+String growthPhaseToString(GrowthPhase phase) {
+  switch (phase) {
+    case INCUBATION: return "Incubation";
+    case PRIMORDIA_FORMATION: return "Primordia";
+    case FRUITING: return "Fruiting";
+    default: return "Unknown";
+  }
+}
+
+// Updated getCurrentPhase function
+GrowthPhase getCurrentPhase() {
+  HTTPClient http;
+  String phaseUrl = config.serverUrl + "/api/phase";
+  
+  http.begin(phaseUrl.c_str());
+  http.addHeader("User-Agent", "ESP32-Sensor");
+  http.setTimeout(5000);
+
+  Serial.printf("Getting phase from: %s\n", phaseUrl.c_str());
+
+  int httpResponseCode = http.GET();
+
+  if (httpResponseCode > 0) {
+    Serial.printf("GET Response code: %d\n", httpResponseCode);
+    
+    if (httpResponseCode >= 200 && httpResponseCode < 300) {
+      String response = http.getString();
+      Serial.printf("Phase response: %s\n", response.c_str());
+      
+      // Parse JSON response to extract phase
+      JsonDocument doc;
+      deserializeJson(doc, response);
+      String phaseStr = doc["phase"];
+      
+      http.end();
+      return stringToGrowthPhase(phaseStr);
+    } else {
+      lastError = "HTTP error code: " + String(httpResponseCode);
+      http.end();
+      return INCUBATION; 
+    }
+  } else {
+    String error = http.errorToString(httpResponseCode);
+    lastError = "HTTP client error: " + error;
+    Serial.printf("Error on GET: %s\n", error.c_str());
+    http.end();
+    return INCUBATION;
+  }
+}
+
 bool sendPostRequest(const char* serverUrl, const String& jsonPayload) {
   if (!wifiConnected()) {
     lastError = "WiFi not connected";
@@ -162,8 +228,9 @@ bool sendPostRequest(const char* serverUrl, const String& jsonPayload) {
 }
 
 bool sendSensorData(float humidity, float temperature, float pressure) {
+  String sensorUrl = String(config.serverUrl) + "/api/sensor-data";
   String json = createSensorJson(humidity, temperature, pressure);
-  return sendPostRequest(config.serverUrl.c_str(), json);
+  return sendPostRequest(sensorUrl.c_str(), json);
 }
 
 String createSensorJson(float humidity, float temperature, float pressure) {

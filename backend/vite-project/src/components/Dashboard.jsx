@@ -14,32 +14,137 @@ export default function Dashboard() {
     { temperature: 21.6, humidity: 62.1, pressure: 1009.0, time: "7:25:55 PM" },
     { temperature: 21.7, humidity: 62.3, pressure: 1009.2, time: "7:26:00 PM" }
   ]);
-  const [phases, setPhases] = useState(['Incubation', 'Colonization', 'Pinning', 'Fruiting', 'Harvesting']);
+  const [phases, setPhases] = useState(['Incubation', 'Primordia', 'Fruiting']);
   const [currentPhase, setCurrentPhase] = useState("Incubation");
   const [loading, setLoading] = useState(false);
 
   // Simulate real-time updates
   useEffect(() => {
+    // Fetch initial data
+    fetchLatestData();
+    fetchPhases();
+    fetchCurrentPhase();
+    fetchHistory();
+    
+    // Set up interval to fetch real data every 30 seconds
     const interval = setInterval(() => {
-      const newData = {
-        temperature: 21.7 + (Math.random() - 0.5) * 0.4,
-        humidity: 85.3 + (Math.random() - 0.5) * 2,
-        pressure: 1009.2 + (Math.random() - 0.5) * 1,
-        timestamp: new Date().toISOString()
-      };
-      setData(newData);
-      
-      setHistory(prev => {
-        const updated = [...prev, { 
-          ...newData, 
-          time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})
-        }];
-        return updated.slice(-20);
-      });
-    }, 5000);
+      fetchLatestData();
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);
+
+  // Add these fetch functions to your Dashboard component:
+  const fetchLatestData = async () => {
+    try {
+      const response = await fetch('/api/data');
+      if (response.ok) {
+        const newData = await response.json();
+        
+        // Handle case where no real data is available yet
+        if (newData.mock) {
+          console.log('No sensor data available yet, using mock data');
+          return;
+        }
+        
+        setData({
+          temperature: newData.temperature,
+          humidity: newData.humidity,
+          pressure: newData.pressure,
+          timestamp: newData.timestamp
+        });
+        
+        // Add to history when we get new data
+        setHistory(prev => {
+          const updated = [...prev, { 
+            temperature: newData.temperature,
+            humidity: newData.humidity,
+            pressure: newData.pressure,
+            time: new Date(newData.timestamp).toLocaleTimeString([], {
+              hour: '2-digit', 
+              minute:'2-digit', 
+              second:'2-digit'
+            })
+          }];
+          return updated.slice(-20); // Keep last 20 readings
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch sensor data:', error);
+    }
+  };
+
+  const fetchPhases = async () => {
+    try {
+      const response = await fetch('/api/phases');
+      if (response.ok) {
+        const phasesData = await response.json();
+        setPhases(phasesData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch phases:', error);
+    }
+  };
+
+  const fetchCurrentPhase = async () => {
+    try {
+      const response = await fetch('/api/phase');
+      if (response.ok) {
+        const phaseData = await response.json();
+        setCurrentPhase(phaseData.phase);
+      }
+    } catch (error) {
+      console.error('Failed to fetch current phase:', error);
+    }
+  };
+
+  const fetchHistory = async () => {
+    try {
+      const response = await fetch('/api/history?limit=20');
+      if (response.ok) {
+        const historyData = await response.json();
+        const formattedHistory = historyData.data.map(item => ({
+          temperature: item.temperature,
+          humidity: item.humidity,
+          pressure: item.pressure,
+          time: new Date(item.timestamp).toLocaleTimeString([], {
+            hour: '2-digit', 
+            minute:'2-digit', 
+            second:'2-digit'
+          })
+        }));
+        setHistory(formattedHistory);
+      }
+    } catch (error) {
+      console.error('Failed to fetch history:', error);
+    }
+  };
+
+  // Update your handlePhaseChange function:
+  const handlePhaseChange = async (e) => {
+    const newPhase = e.target.value;
+    setLoading(true);
+    
+    try {
+      const response = await fetch('/api/phase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phase: newPhase }),
+      });
+      
+      if (response.ok) {
+        setCurrentPhase(newPhase);
+      } else {
+        console.error('Failed to update phase');
+      }
+    } catch (error) {
+      console.error('Failed to update phase:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (value, type) => {
     if (type === 'temperature') {
@@ -67,16 +172,10 @@ export default function Dashboard() {
     return <AlertTriangle className="w-4 h-4 text-red-400" />;
   };
 
-  const handlePhaseChange = (e) => {
-    setCurrentPhase(e.target.value);
-  };
-
   const phaseInfo = {
     'Incubation': { duration: '7-14 days', temp: '20-24°C', humidity: '85-95%', description: 'Initial spore germination' },
-    'Colonization': { duration: '2-4 weeks', temp: '22-25°C', humidity: '80-90%', description: 'Mycelium growth phase' },
-    'Pinning': { duration: '5-10 days', temp: '18-22°C', humidity: '90-95%', description: 'Pin formation begins' },
+    'Primordia': { duration: '5-10 days', temp: '18-22°C', humidity: '90-95%', description: 'Pin formation begins' },
     'Fruiting': { duration: '7-14 days', temp: '16-20°C', humidity: '85-92%', description: 'Mushroom development' },
-    'Harvesting': { duration: '3-7 days', temp: '16-18°C', humidity: '80-85%', description: 'Ready for harvest' }
   };
 
   return (

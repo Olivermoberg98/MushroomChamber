@@ -3,15 +3,26 @@
 
 #include "mushroom_types.h"
 
+// --- Setup Function ---
 void setupActuators();
 
-void turnFanOn();
-void turnFanOff();
+// --- Main Control Function ---
+void updateActuators(float humidity, float temperature, float pressure);
 
-void turnHumidifierOn();
-void turnHumidifierOff();
+// --- Individual Control Functions ---
+void setFanSpeed(float speed);        // 0.0 to 1.0
+void setHumidifier(bool on);
 
-void controlHumidity(float currentHumidity, const PhaseConfig& config);
-void controlVentilationCycle(float humidity, float pressure);
+// --- Status Query Functions ---
+bool isHumidifierOn();
+bool areFansOn();
+float getCurrentFanSpeed();
+bool isVentilating();
+
+// --- Legacy Functions (for backward compatibility) ---
+void turnFansOn();
+void turnFansOff();
+void turnOnHumidifier();
+void turnOffHumidifier();
 
 #endif

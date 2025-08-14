@@ -290,7 +290,7 @@ void test_comprehensive_reading(void) {
 #ifdef ARDUINO
 void setup() {
     Serial.begin(115200);
-    delay(2000); // Wait for serial monitor
+    delay(5000); // Wait for serial monitor
     
     Serial.println("Starting BME280 Sensor Tests...");
     Serial.println("I2C SDA Pin: " + String(BME_SDA));

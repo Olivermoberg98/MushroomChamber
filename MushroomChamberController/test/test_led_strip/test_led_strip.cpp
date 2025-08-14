@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <FastLED.h>
 
-#define LED_PIN 12        // Pin connected to the LED strip data line
+#define LED_PIN 27        // Pin connected to the LED strip data line
 #define NUM_LEDS 60      // Total number of LEDs (two 30-LED strips)
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB

@@ -26,18 +26,19 @@ void setup() {
 
   // Initialize WiFi
   wifiSetup("#Telia-DA3228", "fc736346d1dST2A1", "http://192.168.1.100:3001");
+
+  // Start auto-tuning
+  float initialHumidity = readHumidity();
+  startAutoTuning(initialHumidity);
 }
 
 void loop() {
   float temp, humidity, pressure;
 
-  // Read sensors
-  // temp = readTemperature();
-  // humidity = readHumidity();
-  // pressure = readPressure();
-  temp = 12.1;
-  humidity = 89;
-  pressure = 1012.22;
+  // Read environmental data
+  temp = readTemperature();
+  humidity = readHumidity();
+  pressure = readPressure();
 
   // Print to serial - IMPROVED: Use helper function
   Serial.print("Phase: ");
@@ -69,14 +70,14 @@ void loop() {
       oldPhase = currentPhase;      // Store old phase
       currentPhase = newPhase;      // Update current phase
       activePhaseConfig = getActivePhaseConfig(); // Update config for new phase
+      startAutoTuning(humidity);  // Re-tune for new phase requirements
     }
   } else {
     Serial.printf("WiFi Status: %s\n", getWiFiStatusString().c_str());
   }
 
   // --- Control system based on phase config ---
-  controlVentilationCycle(humidity, pressure);        // Manages fan and humidifier pause logic
-  controlHumidity(humidity, activePhaseConfig);  // Pass in current humidity and active config
+  updateActuators(humidity, pressure);
   controlLighting(activePhaseConfig);     // Pass in active config with light timing/color
 
   delay(3000); // Loop delay

@@ -4,7 +4,9 @@
 #include <algorithm>
 
 // --- Fan & Humidifier ---
-#define FAN_PIN 16
+#define FAN1_PIN 13  // Updated pin numbers to match test configuration
+#define FAN2_PIN 12
+#define FAN3_PIN 14
 #define HUMIDIFIER_PIN 17
 
 // Score tracking
@@ -54,18 +56,26 @@ static unsigned long ventilationStartTime = 0;
 static bool humidifierOn = false;
 
 void setupActuators() {
-  pinMode(FAN_PIN, OUTPUT);
-  pinMode(HUMIDIFIER_PIN, OUTPUT);
-  digitalWrite(FAN_PIN, LOW);
-  digitalWrite(HUMIDIFIER_PIN, LOW);
+    pinMode(FAN1_PIN, OUTPUT);
+    pinMode(FAN2_PIN, OUTPUT);
+    pinMode(FAN3_PIN, OUTPUT);
+    pinMode(HUMIDIFIER_PIN, OUTPUT);
+    digitalWrite(FAN1_PIN, LOW);
+    digitalWrite(FAN2_PIN, LOW);
+    digitalWrite(FAN3_PIN, LOW);
+    digitalWrite(HUMIDIFIER_PIN, LOW);
 }
 
-void turnFanOn() {
-  digitalWrite(FAN_PIN, HIGH);
+void turnFansOn() {
+    digitalWrite(FAN1_PIN, HIGH);
+    digitalWrite(FAN2_PIN, HIGH);
+    digitalWrite(FAN3_PIN, HIGH);
 }
 
-void turnFanOff() {
-  digitalWrite(FAN_PIN, LOW);
+void turnFansOff() {
+    digitalWrite(FAN1_PIN, LOW);
+    digitalWrite(FAN2_PIN, LOW);
+    digitalWrite(FAN3_PIN, LOW);
 }
 
 void turnOnHumidifier() {
@@ -83,7 +93,7 @@ void controlVentilationCycle(float humidity, float pressure) {
   // --- Check if it's time to start ventilation ---
   if (!ventilating && (now - lastVentilationTime > intervalBetweenFans)) {
     // Start fan and pause humidifier
-    turnFanOn();
+    turnFansOn();
     turnOffHumidifier();
     ventilating = true;
 
@@ -98,7 +108,7 @@ void controlVentilationCycle(float humidity, float pressure) {
 
   // --- Check if it's time to stop ventilation ---
   if (ventilating && (now - ventilationStartTime > fanDurationMs)) {
-    turnFanOff();
+    turnFansOff();
     ventilating = false;
 
     // Calculate updated environment score

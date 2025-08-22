@@ -29,7 +29,6 @@ void setup() {
 
   // Start auto-tuning
   float initialHumidity = readHumidity();
-  startAutoTuning(initialHumidity);
 }
 
 void loop() {
@@ -70,14 +69,13 @@ void loop() {
       oldPhase = currentPhase;      // Store old phase
       currentPhase = newPhase;      // Update current phase
       activePhaseConfig = getActivePhaseConfig(); // Update config for new phase
-      startAutoTuning(humidity);  // Re-tune for new phase requirements
     }
   } else {
     Serial.printf("WiFi Status: %s\n", getWiFiStatusString().c_str());
   }
 
   // --- Control system based on phase config ---
-  updateActuators(humidity, pressure);
+  updateActuators(humidity, temp, pressure);
   controlLighting(activePhaseConfig);     // Pass in active config with light timing/color
 
   delay(3000); // Loop delay

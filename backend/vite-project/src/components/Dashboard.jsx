@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from "recharts";
-import { Thermometer, Droplets, Gauge, Activity, AlertTriangle, CheckCircle, Clock, Leaf } from "lucide-react";
+import { Thermometer, Droplets, Gauge, Activity, AlertTriangle, CheckCircle, Clock, Leaf, Wifi, WifiOff } from "lucide-react";
 
 export default function Dashboard() {
   const [data, setData] = useState({
@@ -9,68 +9,69 @@ export default function Dashboard() {
     pressure: 1009.2,
     timestamp: new Date().toISOString()
   });
-  const [history, setHistory] = useState([
-    { temperature: 21.5, humidity: 61.8, pressure: 1008.9, time: "7:25:50 PM" },
-    { temperature: 21.6, humidity: 62.1, pressure: 1009.0, time: "7:25:55 PM" },
-    { temperature: 21.7, humidity: 62.3, pressure: 1009.2, time: "7:26:00 PM" }
-  ]);
+  const [history, setHistory] = useState([]);
   const [phases, setPhases] = useState(['Incubation', 'Primordia', 'Fruiting']);
   const [currentPhase, setCurrentPhase] = useState("Incubation");
   const [loading, setLoading] = useState(false);
+  const [isConnected, setIsConnected] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState(null);
 
-  // Simulate real-time updates
-  useEffect(() => {
-    // Fetch initial data
-    fetchLatestData();
-    fetchPhases();
-    fetchCurrentPhase();
-    fetchHistory();
-    
-    // Set up interval to fetch real data every 30 seconds
-    const interval = setInterval(() => {
-      fetchLatestData();
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Add these fetch functions to your Dashboard component:
+  // Fetch functions with better error handling and real-time updates
   const fetchLatestData = async () => {
     try {
+      console.log('Fetching latest sensor data...');
       const response = await fetch('/api/data');
+      
       if (response.ok) {
         const newData = await response.json();
+        console.log('Received data:', newData);
         
-        // Handle case where no real data is available yet
-        if (newData.mock) {
-          console.log('No sensor data available yet, using mock data');
-          return;
-        }
+        // Update connection status
+        setIsConnected(true);
         
+        // Always update state with new data (remove mock check)
         setData({
-          temperature: newData.temperature,
-          humidity: newData.humidity,
-          pressure: newData.pressure,
-          timestamp: newData.timestamp
+          temperature: parseFloat(newData.temperature) || data.temperature,
+          humidity: parseFloat(newData.humidity) || data.humidity,
+          pressure: parseFloat(newData.pressure) || data.pressure,
+          timestamp: newData.timestamp || new Date().toISOString()
         });
         
-        // Add to history when we get new data
+        setLastUpdate(new Date(newData.timestamp || Date.now()));
+        
+        // Add to history with the new data
+        const newHistoryPoint = {
+          temperature: parseFloat(newData.temperature) || data.temperature,
+          humidity: parseFloat(newData.humidity) || data.humidity,
+          pressure: parseFloat(newData.pressure) || data.pressure,
+          time: new Date().toLocaleTimeString([], {
+            hour: '2-digit', 
+            minute:'2-digit', 
+            second:'2-digit'
+          })
+        };
+        
         setHistory(prev => {
-          const updated = [...prev, { 
-            temperature: newData.temperature,
-            humidity: newData.humidity,
-            pressure: newData.pressure,
-            time: new Date(newData.timestamp).toLocaleTimeString([], {
-              hour: '2-digit', 
-              minute:'2-digit', 
-              second:'2-digit'
-            })
-          }];
+          // Avoid duplicate entries by checking if this is actually new data
+          const lastEntry = prev[prev.length - 1];
+          if (lastEntry && 
+              Math.abs(lastEntry.temperature - newHistoryPoint.temperature) < 0.1 &&
+              Math.abs(lastEntry.humidity - newHistoryPoint.humidity) < 0.1 &&
+              Math.abs(lastEntry.pressure - newHistoryPoint.pressure) < 0.1) {
+            return prev; // Don't add duplicate
+          }
+          
+          const updated = [...prev, newHistoryPoint];
           return updated.slice(-20); // Keep last 20 readings
         });
+        
+      } else {
+        console.error('Failed to fetch data:', response.status);
+        setIsConnected(false);
       }
     } catch (error) {
-      console.error('Failed to fetch sensor data:', error);
+      console.error('Error fetching sensor data:', error);
+      setIsConnected(false);
     }
   };
 
@@ -104,9 +105,9 @@ export default function Dashboard() {
       if (response.ok) {
         const historyData = await response.json();
         const formattedHistory = historyData.data.map(item => ({
-          temperature: item.temperature,
-          humidity: item.humidity,
-          pressure: item.pressure,
+          temperature: parseFloat(item.temperature),
+          humidity: parseFloat(item.humidity),
+          pressure: parseFloat(item.pressure),
           time: new Date(item.timestamp).toLocaleTimeString([], {
             hour: '2-digit', 
             minute:'2-digit', 
@@ -120,7 +121,33 @@ export default function Dashboard() {
     }
   };
 
-  // Update your handlePhaseChange function:
+  // Initial setup and intervals
+  useEffect(() => {
+    console.log('Dashboard mounted, setting up data fetching...');
+    
+    // Fetch initial data
+    fetchLatestData();
+    fetchPhases();
+    fetchCurrentPhase();
+    fetchHistory();
+    
+    // Set up more frequent updates for real-time feel
+    const dataInterval = setInterval(() => {
+      console.log('Interval: fetching latest data...');
+      fetchLatestData();
+    }, 2000); // Check every 2 seconds for new data
+
+    // Less frequent phase check
+    const phaseInterval = setInterval(() => {
+      fetchCurrentPhase();
+    }, 30000); // Check phase every 30 seconds
+
+    return () => {
+      clearInterval(dataInterval);
+      clearInterval(phaseInterval);
+    };
+  }, []);
+
   const handlePhaseChange = async (e) => {
     const newPhase = e.target.value;
     setLoading(true);
@@ -136,6 +163,7 @@ export default function Dashboard() {
       
       if (response.ok) {
         setCurrentPhase(newPhase);
+        console.log('Phase updated to:', newPhase);
       } else {
         console.error('Failed to update phase');
       }
@@ -182,7 +210,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Header */}
+        {/* Header with connection status */}
         <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -194,9 +222,24 @@ export default function Dashboard() {
                 <p className="text-slate-300">Environmental monitoring and phase management</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-slate-300">
-              <Clock className="w-4 h-4" />
-              <span className="text-sm">Last update: {new Date(data.timestamp).toLocaleString()}</span>
+            <div className="flex items-center gap-4">
+              {/* Connection status indicator */}
+              <div className="flex items-center gap-2">
+                {isConnected ? (
+                  <Wifi className="w-4 h-4 text-green-400" />
+                ) : (
+                  <WifiOff className="w-4 h-4 text-red-400" />
+                )}
+                <span className={`text-sm ${isConnected ? 'text-green-400' : 'text-red-400'}`}>
+                  {isConnected ? 'Connected' : 'Disconnected'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-300">
+                <Clock className="w-4 h-4" />
+                <span className="text-sm">
+                  Last update: {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Never'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -224,7 +267,7 @@ export default function Dashboard() {
             <div className="mt-3 bg-slate-800/50 rounded-lg p-2">
               <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full transition-all"
+                  className="h-full bg-gradient-to-r from-orange-500 to-orange-400 rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, (data.temperature / 30) * 100)}%` }}
                 />
               </div>
@@ -252,7 +295,7 @@ export default function Dashboard() {
             <div className="mt-3 bg-slate-800/50 rounded-lg p-2">
               <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all"
+                  className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, data.humidity)}%` }}
                 />
               </div>
@@ -280,7 +323,7 @@ export default function Dashboard() {
             <div className="mt-3 bg-slate-800/50 rounded-lg p-2">
               <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full transition-all"
+                  className="h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full transition-all duration-500"
                   style={{ width: `${Math.min(100, ((data.pressure - 990) / 30) * 100)}%` }}
                 />
               </div>
@@ -294,9 +337,10 @@ export default function Dashboard() {
             <div className="flex items-center gap-3 mb-6">
               <Activity className="w-5 h-5 text-emerald-400" />
               <h2 className="text-xl font-semibold text-white">Environmental Trends</h2>
+              <span className="text-xs text-slate-400">({history.length} data points)</span>
             </div>
             
-            {history.length > 1 && (
+            {history.length > 1 ? (
               <ResponsiveContainer width="100%" height={400}>
                 <AreaChart data={history}>
                   <defs>
@@ -350,6 +394,10 @@ export default function Dashboard() {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-40 text-slate-400">
+                <p>Waiting for sensor data...</p>
+              </div>
             )}
           </div>
 
@@ -366,7 +414,8 @@ export default function Dashboard() {
                   id="phase"
                   value={currentPhase}
                   onChange={handlePhaseChange}
-                  className="w-full bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  disabled={loading}
+                  className="w-full bg-slate-800/70 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50"
                 >
                   {phases.map((phase) => (
                     <option key={phase} value={phase} className="bg-slate-800">
@@ -374,6 +423,7 @@ export default function Dashboard() {
                     </option>
                   ))}
                 </select>
+                {loading && <p className="text-xs text-yellow-400 mt-1">Updating phase...</p>}
               </div>
 
               <div className="bg-slate-800/50 rounded-lg p-4 space-y-2">
@@ -402,10 +452,12 @@ export default function Dashboard() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <span className="text-sm text-slate-300">Environmental Control</span>
+                    <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-red-400'}`}></div>
+                    <span className="text-sm text-slate-300">ESP32 Connection</span>
                   </div>
-                  <span className="text-xs text-green-400">Online</span>
+                  <span className={`text-xs ${isConnected ? 'text-green-400' : 'text-red-400'}`}>
+                    {isConnected ? 'Online' : 'Offline'}
+                  </span>
                 </div>
                 
                 <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">

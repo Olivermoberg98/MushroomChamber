@@ -63,7 +63,7 @@ app.post("/api/sensor-data", (req, res) => {
       humidity: parseFloat(humidity),
       temperature: parseFloat(temperature),
       pressure: parseFloat(pressure),
-      timestamp: timestamp || Date.now(),
+      timestamp: new Date().toISOString(),
       device_id: device_id || 'unknown',
       wifi_rssi: wifi_rssi || null
     };

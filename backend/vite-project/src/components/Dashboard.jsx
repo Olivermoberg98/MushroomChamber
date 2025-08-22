@@ -135,7 +135,7 @@ export default function Dashboard() {
     const dataInterval = setInterval(() => {
       console.log('Interval: fetching latest data...');
       fetchLatestData();
-    }, 2000); // Check every 2 seconds for new data
+    }, 5000); // Check every 2 seconds for new data
 
     // Less frequent phase check
     const phaseInterval = setInterval(() => {

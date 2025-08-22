@@ -179,7 +179,7 @@ app.get(/^(?!\/api).*/, (req, res) => {
 });
 
 // ====== Start Server ======
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
   console.log(`📡 ESP32 should POST sensor data to: http://localhost:${PORT}/api/sensor-data`);
   console.log(`🌐 Frontend available at: http://localhost:${PORT}`);

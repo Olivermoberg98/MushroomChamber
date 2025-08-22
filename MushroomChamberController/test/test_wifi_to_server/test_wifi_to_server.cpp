@@ -6,7 +6,7 @@
 // Your Raspberry Pi configuration
 const char* WIFI_SSID = "#Telia-DA3228";        // Replace with your WiFi name
 const char* WIFI_PASSWORD = "fc736346d1dST2A1"; // Replace with your WiFi password
-const char* SERVER_URL = "http://192.168.1.126";   // Your Raspberry Pi IP
+const char* SERVER_URL = "http://192.168.1.126:3001";   // Your Raspberry Pi IP
 
 // Test configuration
 const unsigned long TEST_DURATION_MS = 60000; // 1 minute

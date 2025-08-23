@@ -111,10 +111,15 @@ app.get("/api/data", (req, res) => {
       timestamp: new Date().toISOString()
     });
   }
+
+  const now = Date.now();
+  const isDataRecent = latestSensorData.timestamp && 
+    (now - new Date(latestSensorData.timestamp).getTime() < 60000);
   
   // Convert timestamp to ISO string if it's a number
   const responseData = {
     ...latestSensorData,
+    esp32_connected: isDataRecent,
     timestamp: typeof latestSensorData.timestamp === 'number' 
       ? new Date(latestSensorData.timestamp).toISOString()
       : latestSensorData.timestamp

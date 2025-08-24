@@ -33,16 +33,13 @@ struct MushroomConfig {
 
 
 enum MushroomType {
-  OYSTER,
-  SHIITAKE,
-  PORTOBELLO,
-  BUTTON,
   ENOKI,
   KING_OYSTER,
-  LIONS_MANE,
-  MAITAKE,
-  REISHI,
-  CHAGA
+  LIONS_MANE,  
+  MAITAKE,  
+  OYSTER,
+  SHIITAKE,
+  SHIMEJI
 };
 
 

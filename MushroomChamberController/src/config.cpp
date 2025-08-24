@@ -24,27 +24,41 @@ MushroomConfig getMushroomConfig(MushroomType type) {
     case SHIITAKE:
       return {
         "Shiitake",
-        // Incubation phase
-        {
-          22.0, 1.0,
-          95.0, 5.0,
-          1013.0, 8.0,
-          0, 0, CRGB::Black  // No light
-        },
-        // Primordia formation
-        {
-          15.0, 1.0,
-          95.0, 5.0,
-          1013.0, 8.0,
-          8, 12, CRGB::White  // short light
-        },
-        // Fruiting phase
-        {
-          17.0, 1.0,
-          85.0, 5.0,
-          1013.0, 8.0,
-          8, 20, CRGB::White  // longer light
-        }
+        { 25.0, 2.0, 75.0, 5.0, 1013.0, 8.0, 0, 0, CRGB::Black },
+        { 14.0, 2.0, 95.0, 5.0, 1013.0, 8.0, 6, 10, CRGB::White },
+        { 18.0, 2.0, 88.0, 5.0, 1013.0, 8.0, 8, 12, CRGB::White }
+      };
+
+    case OYSTER:
+      return {
+        "Oyster",
+        { 25.0, 1.0, 88.0, 5.0, 1013.0, 8.0, 0, 0, CRGB::Black },
+        { 14.0, 2.0, 95.0, 5.0, 1013.0, 8.0, 8, 12, CRGB::White },
+        { 18.0, 2.0, 88.0, 5.0, 1013.0, 8.0, 8, 12, CRGB::White }
+      };
+
+    case KING_OYSTER:
+      return {
+        "King Oyster",
+        { 23.0, 1.0, 88.0, 5.0, 1013.0, 8.0, 0, 0, CRGB::Black },
+        { 16.0, 2.0, 95.0, 5.0, 1013.0, 8.0, 8, 12, CRGB::White },
+        { 18.0, 2.0, 88.0, 5.0, 1013.0, 8.0, 8, 12, CRGB::White }
+      };
+
+    case SHIMEJI:
+      return {
+        "Shimeji",
+        { 22.0, 1.0, 90.0, 5.0, 1013.0, 8.0, 0, 0, CRGB::Black },
+        { 16.0, 2.0, 95.0, 5.0, 1013.0, 8.0, 8, 12, CRGB::White },
+        { 17.0, 2.0, 90.0, 5.0, 1013.0, 8.0, 8, 12, CRGB::White }
+      };
+
+    case LIONS_MANE:
+      return {
+        "Lion's Mane",
+        { 25.0, 1.0, 88.0, 5.0, 1013.0, 8.0, 0, 0, CRGB::Black },
+        { 17.0, 1.0, 95.0, 5.0, 1013.0, 8.0, 6, 8, CRGB::White },
+        { 18.0, 2.0, 90.0, 5.0, 1013.0, 8.0, 6, 8, CRGB::White }
       };
     default:
       return {/* default config */};

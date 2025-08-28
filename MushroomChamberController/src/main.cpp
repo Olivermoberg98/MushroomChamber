@@ -22,13 +22,10 @@ void setup() {
   setupSensors();
   setupActuators();
   setupLeds();
-  setupTime();
+  // setupTime();
 
   // Initialize WiFi
-  wifiSetup("#Telia-DA3228", "fc736346d1dST2A1", "http://192.168.1.100:3001");
-
-  // Start auto-tuning
-  float initialHumidity = readHumidity();
+  wifiSetup("#Telia-DA3228", "fc736346d1dST2A1", "http://192.168.1.126:3001");
 }
 
 void loop() {
@@ -39,9 +36,9 @@ void loop() {
   humidity = readHumidity();
   pressure = readPressure();
 
-  // Print to serial - IMPROVED: Use helper function
+  // Print to serial
   Serial.print("Phase: ");
-  Serial.print(growthPhaseToString(currentPhase)); // Use the helper function!
+  Serial.print(growthPhaseToString(currentPhase));
   Serial.print(" | Temp: ");
   Serial.print(temp);
   Serial.print(" °C, Humidity: ");
@@ -78,5 +75,5 @@ void loop() {
   updateActuators(humidity, temp, pressure);
   controlLighting(activePhaseConfig);     // Pass in active config with light timing/color
 
-  delay(3000); // Loop delay
+  delay(2000); // Loop delay
 }

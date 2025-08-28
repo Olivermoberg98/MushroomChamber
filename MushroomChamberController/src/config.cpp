@@ -66,13 +66,13 @@ MushroomConfig getMushroomConfig(MushroomType type) {
 }
 
 
-void setupTime() {
-  configTime(0, 0, "pool.ntp.org");  // UTC
-  // Optional: wait until time is synced
-  struct tm timeinfo;
-  while (!getLocalTime(&timeinfo)) {
-    Serial.println("Waiting for NTP time...");
-    delay(1000);
-  }
-  Serial.println("Time synced!");
-}
+// void setupTime() {
+//   configTime(0, 0, "pool.ntp.org");  // UTC
+//   // Optional: wait until time is synced
+//   struct tm timeinfo;
+//   while (!getLocalTime(&timeinfo)) {
+//     Serial.println("Waiting for NTP time...");
+//     delay(1000);
+//   }
+//   Serial.println("Time synced!");
+// }

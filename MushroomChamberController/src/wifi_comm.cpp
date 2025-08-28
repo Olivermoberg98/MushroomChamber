@@ -29,6 +29,7 @@ void wifiSetup(const char* ssid, const char* password, const char* serverUrl) {
   
   Serial.print("WiFi setup complete for SSID: ");
   Serial.println(config.ssid);
+  delay(1000);
 }
 
 void wifiRetryLoop() {
@@ -155,12 +156,12 @@ GrowthPhase getCurrentPhase() {
   http.addHeader("User-Agent", "ESP32-Sensor");
   http.setTimeout(5000);
 
-  Serial.printf("Getting phase from: %s\n", phaseUrl.c_str());
+  // Serial.printf("Getting phase from: %s\n", phaseUrl.c_str());
 
   int httpResponseCode = http.GET();
 
   if (httpResponseCode > 0) {
-    Serial.printf("GET Response code: %d\n", httpResponseCode);
+    // Serial.printf("GET Response code: %d\n", httpResponseCode);
     
     if (httpResponseCode >= 200 && httpResponseCode < 300) {
       String response = http.getString();
@@ -200,8 +201,8 @@ bool sendPostRequest(const char* serverUrl, const String& jsonPayload) {
   http.addHeader("User-Agent", "ESP32-Sensor");
   http.setTimeout(10000); // 10 second timeout
 
-  Serial.printf("Sending POST to: %s\n", serverUrl);
-  Serial.printf("Payload: %s\n", jsonPayload.c_str());
+  // Serial.printf("Sending POST to: %s\n", serverUrl);
+  // Serial.printf("Payload: %s\n", jsonPayload.c_str());
 
   int httpResponseCode = http.POST(jsonPayload);
 
@@ -210,7 +211,7 @@ bool sendPostRequest(const char* serverUrl, const String& jsonPayload) {
     
     if (httpResponseCode >= 200 && httpResponseCode < 300) {
       String response = http.getString();
-      Serial.printf("Response: %s\n", response.c_str());
+      // Serial.printf("Response: %s\n", response.c_str());
       http.end();
       return true;
     } else {

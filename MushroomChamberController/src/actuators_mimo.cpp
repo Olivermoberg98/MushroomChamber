@@ -67,6 +67,7 @@ struct SimpleFilter {
 SimpleFilter humidityFilter, temperatureFilter, pressureFilter;
 
 void setupActuators() {
+    Serial.println("Initializing actuators...");
     pinMode(EXHAUST_FAN1_PIN, OUTPUT);
     pinMode(EXHAUST_FAN2_PIN, OUTPUT);
     pinMode(INLET_FAN_PIN, OUTPUT);

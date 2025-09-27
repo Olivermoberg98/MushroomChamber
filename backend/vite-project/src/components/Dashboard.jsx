@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from "recharts";
-import { Thermometer, Droplets, Gauge, Activity, AlertTriangle, CheckCircle, Clock, Leaf, Wifi, WifiOff } from "lucide-react";
+import { Thermometer, Droplets, Gauge, Activity, AlertTriangle, CheckCircle, Clock, Leaf, Wifi, WifiOff, Download, RefreshCw } from "lucide-react";
 
 export default function Dashboard() {
   const [data, setData] = useState({
@@ -15,6 +15,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState('');
 
   // Fetch functions with better error handling and real-time updates
   const fetchLatestData = async () => {
@@ -121,6 +123,58 @@ export default function Dashboard() {
     }
   };
 
+  // System update function
+  const handleSystemUpdate = async () => {
+    if (isUpdating) return;
+    
+    const confirmed = window.confirm(
+      'This will fetch the latest changes from git and restart the system. The dashboard will be unavailable for about 1-2 minutes. Continue?'
+    );
+    
+    if (!confirmed) return;
+    
+    setIsUpdating(true);
+    setUpdateStatus('Starting update...');
+    
+    try {
+      const response = await fetch('/api/update-system', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        if (result.changes) {
+          setUpdateStatus('Update completed! Restarting...');
+          // Show success message for a few seconds before the server restarts
+          setTimeout(() => {
+            setUpdateStatus('Server is restarting...');
+          }, 2000);
+          
+          // After 10 seconds, start checking if server is back online
+          setTimeout(() => {
+            window.location.reload();
+          }, 10000);
+        } else {
+          setUpdateStatus('System is already up to date');
+          setIsUpdating(false);
+          setTimeout(() => setUpdateStatus(''), 3000);
+        }
+      } else {
+        setUpdateStatus(`Update failed: ${result.error}`);
+        setIsUpdating(false);
+        setTimeout(() => setUpdateStatus(''), 5000);
+      }
+    } catch (error) {
+      setUpdateStatus('Update failed: Network error');
+      setIsUpdating(false);
+      setTimeout(() => setUpdateStatus(''), 5000);
+    }
+  };
+
   // Initial setup and intervals
   useEffect(() => {
     console.log('Dashboard mounted, setting up data fetching...');
@@ -135,7 +189,7 @@ export default function Dashboard() {
     const dataInterval = setInterval(() => {
       console.log('Interval: fetching latest data...');
       fetchLatestData();
-    }, 5000); // Check every 2 seconds for new data
+    }, 5000); // Check every 5 seconds for new data
 
     // Less frequent phase check
     const phaseInterval = setInterval(() => {
@@ -447,7 +501,33 @@ export default function Dashboard() {
 
             {/* System Status */}
             <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">System Status</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">System Status</h3>
+                <button
+                  onClick={handleSystemUpdate}
+                  disabled={isUpdating}
+                  className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-600 text-white text-sm rounded-lg transition-colors duration-200 disabled:cursor-not-allowed"
+                >
+                  {isUpdating ? (
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                  {isUpdating ? 'Updating...' : 'Update System'}
+                </button>
+              </div>
+              
+              {updateStatus && (
+                <div className={`mb-4 p-3 rounded-lg text-sm ${
+                  updateStatus.includes('failed') || updateStatus.includes('error') 
+                    ? 'bg-red-500/20 text-red-300' 
+                    : updateStatus.includes('completed') || updateStatus.includes('up to date')
+                    ? 'bg-green-500/20 text-green-300'
+                    : 'bg-blue-500/20 text-blue-300'
+                }`}>
+                  {updateStatus}
+                </div>
+              )}
               
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
@@ -471,9 +551,9 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
-                    <span className="text-sm text-slate-300">Ventilation</span>
+                    <span className="text-sm text-slate-300">Auto Updates</span>
                   </div>
-                  <span className="text-xs text-yellow-400">Standby</span>
+                  <span className="text-xs text-yellow-400">Available</span>
                 </div>
               </div>
             </div>

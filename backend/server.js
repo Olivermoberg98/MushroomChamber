@@ -173,6 +173,98 @@ app.post('/api/phase', (req, res) => {
   res.json({ success: true });
 });
 
+// ====== Git Update Endpoint ======
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+
+app.post('/api/update-system', async (req, res) => {
+  try {
+    console.log('🔄 Starting system update process...');
+    
+    const updateTimeout = setTimeout(() => {
+      res.status(408).json({ 
+        success: false, 
+        error: 'Update process timed out',
+        stage: 'timeout'
+      });
+    }, 120000); // 2 minute timeout
+    
+    const updateSteps = [];
+    
+    try {
+      // Step 1: Git fetch and pull
+      updateSteps.push('Fetching latest changes...');
+      console.log('📥 Fetching from git...');
+      await execAsync('git fetch origin', { cwd: __dirname });
+      
+      updateSteps.push('Pulling latest changes...');
+      const { stdout: gitOutput } = await execAsync('git pull origin main', { cwd: __dirname });
+      console.log('Git output:', gitOutput);
+      
+      // Check if there were actually changes
+      if (gitOutput.includes('Already up to date')) {
+        clearTimeout(updateTimeout);
+        return res.json({
+          success: true,
+          message: 'System is already up to date',
+          changes: false,
+          steps: updateSteps
+        });
+      }
+      
+      // Step 2: Install dependencies (in case package.json changed)
+      updateSteps.push('Installing dependencies...');
+      console.log('📦 Installing dependencies...');
+      await execAsync('npm install', { cwd: __dirname });
+      
+      // Step 3: Build frontend
+      updateSteps.push('Building frontend...');
+      console.log('🏗️ Building frontend...');
+      await execAsync('npm run build --prefix vite-project', { cwd: __dirname });
+      
+      updateSteps.push('Update completed successfully!');
+      
+      clearTimeout(updateTimeout);
+      
+      // Send success response
+      res.json({
+        success: true,
+        message: 'System updated successfully. Restarting server...',
+        changes: true,
+        gitOutput: gitOutput,
+        steps: updateSteps
+      });
+      
+      // Restart with PM2
+      console.log('🔄 Restarting server in 3 seconds...');
+      setTimeout(() => {
+        process.exit(0); // PM2 will restart automatically
+      }, 3000);
+      
+    } catch (error) {
+      clearTimeout(updateTimeout);
+      console.error('❌ Update failed:', error);
+      
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        stage: 'execution',
+        steps: updateSteps
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Update endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to start update process',
+      stage: 'initialization'
+    });
+  }
+});
+
 // ====== Frontend Serving ======
 // Serve static frontend files for non-API routes
 const frontendPath = path.join(__dirname, "vite-project", "dist");

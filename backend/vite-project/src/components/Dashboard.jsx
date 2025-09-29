@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from "recharts";
-import { Thermometer, Droplets, Gauge, Activity, AlertTriangle, CheckCircle, Clock, Leaf, Wifi, WifiOff, Download, RefreshCw } from "lucide-react";
+import { Thermometer, Droplets, Gauge, Activity, AlertTriangle, CheckCircle, Clock, Leaf, Wifi, WifiOff, Download, RefreshCw, Timer } from "lucide-react";
 
 export default function Dashboard() {
   const [data, setData] = useState({
@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [lastUpdate, setLastUpdate] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateStatus, setUpdateStatus] = useState('');
+  const [uptime, setUptime] = useState(null);
 
   // Fetch functions with better error handling and real-time updates
   const fetchLatestData = async () => {
@@ -123,6 +124,34 @@ export default function Dashboard() {
     }
   };
 
+  const fetchUptime = async () => {
+    try {
+      const response = await fetch('/api/uptime');
+      if (response.ok) {
+        const uptimeData = await response.json();
+        setUptime(uptimeData);
+      }
+    } catch (error) {
+      console.error('Failed to fetch uptime:', error);
+    }
+  };
+
+  const formatUptime = (uptimeData) => {
+    if (!uptimeData) return 'Unknown';
+    
+    const { days, hours, minutes, seconds } = uptimeData.formatted;
+    
+    if (days > 0) {
+      return `${days}d ${hours}h ${minutes}m`;
+    } else if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${seconds}s`;
+    } else {
+      return `${seconds}s`;
+    }
+  };
+
   // System update function
   const handleSystemUpdate = async () => {
     if (isUpdating) return;
@@ -184,6 +213,7 @@ export default function Dashboard() {
     fetchPhases();
     fetchCurrentPhase();
     fetchHistory();
+    fetchUptime();
     
     // Set up more frequent updates for real-time feel
     const dataInterval = setInterval(() => {
@@ -196,9 +226,15 @@ export default function Dashboard() {
       fetchCurrentPhase();
     }, 30000); // Check phase every 30 seconds
 
+    // Update uptime every 10 seconds
+    const uptimeInterval = setInterval(() => {
+      fetchUptime();
+    }, 10000);
+
     return () => {
       clearInterval(dataInterval);
       clearInterval(phaseInterval);
+      clearInterval(uptimeInterval);
     };
   }, []);
 
@@ -276,7 +312,7 @@ export default function Dashboard() {
                 <p className="text-slate-300">Environmental monitoring and phase management</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               {/* Connection status indicator */}
               <div className="flex items-center gap-2">
                 {isConnected ? (
@@ -288,11 +324,15 @@ export default function Dashboard() {
                   {isConnected ? 'Connected' : 'Disconnected'}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-slate-300">
-                <Clock className="w-4 h-4" />
-                <span className="text-sm">
-                  Last update: {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Never'}
-                </span>
+              <div className="flex flex-col sm:flex-row gap-4 text-slate-300 text-sm">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  <span>Last update: {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Never'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Timer className="w-4 h-4" />
+                  <span>Uptime: {formatUptime(uptime)}</span>
+                </div>
               </div>
             </div>
           </div>

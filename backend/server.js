@@ -265,6 +265,32 @@ app.post('/api/update-system', async (req, res) => {
   }
 });
 
+const serverStartTime = Date.now();
+
+// Add this new endpoint with your other API routes
+app.get('/api/uptime', (req, res) => {
+  const uptimeMs = Date.now() - serverStartTime;
+  const uptimeSeconds = Math.floor(uptimeMs / 1000);
+  const uptimeMinutes = Math.floor(uptimeSeconds / 60);
+  const uptimeHours = Math.floor(uptimeMinutes / 60);
+  const uptimeDays = Math.floor(uptimeHours / 24);
+  
+  res.json({
+    uptimeMs,
+    uptimeSeconds,
+    uptimeMinutes, 
+    uptimeHours,
+    uptimeDays,
+    startTime: new Date(serverStartTime).toISOString(),
+    formatted: {
+      days: uptimeDays,
+      hours: uptimeHours % 24,
+      minutes: uptimeMinutes % 60,
+      seconds: uptimeSeconds % 60
+    }
+  });
+});
+
 // ====== Frontend Serving ======
 // Serve static frontend files for non-API routes
 const frontendPath = path.join(__dirname, "vite-project", "dist");

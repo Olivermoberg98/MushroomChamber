@@ -25,7 +25,7 @@ void test_humidifier_pin_initialization(void) {
 void test_humidifier_turn_on(void) {
     // Test turning humidifier ON
     digitalWrite(HUMIDIFIER_PIN, HIGH);
-    delay(2000);  // Small delay for pin to settle
+    delay(10000);  // Small delay for pin to settle
     
     // Read back the pin state
     int pinState = digitalRead(HUMIDIFIER_PIN);

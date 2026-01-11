@@ -65,17 +65,17 @@ void test_fans_sequence(void) {
     for(int i = 0; i < 2; i++) {
         // Fan 1
         digitalWrite(FAN1_PIN, HIGH);
-        delay(500);
+        delay(1000);
         digitalWrite(FAN1_PIN, LOW);
         
         // Fan 2
         digitalWrite(FAN2_PIN, HIGH);
-        delay(500);
+        delay(1000);
         digitalWrite(FAN2_PIN, LOW);
         
         // Fan 3
         digitalWrite(FAN3_PIN, HIGH);
-        delay(500);
+        delay(1000);
         digitalWrite(FAN3_PIN, LOW);
     }
     
@@ -83,7 +83,7 @@ void test_fans_sequence(void) {
     digitalWrite(FAN1_PIN, HIGH);
     digitalWrite(FAN2_PIN, HIGH);
     digitalWrite(FAN3_PIN, HIGH);
-    delay(1000);
+    delay(10000);
     digitalWrite(FAN1_PIN, LOW);
     digitalWrite(FAN2_PIN, LOW);
     digitalWrite(FAN3_PIN, LOW);

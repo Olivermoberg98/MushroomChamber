@@ -4,7 +4,7 @@
 #include <FastLED.h>
 
 // Constants
-#define LED_PIN     5
+#define LED_PIN     27
 #define NUM_LEDS    60
 
 // Functions

@@ -18,14 +18,20 @@ void setup() {
   currentConfig = getMushroomConfig(SHIITAKE);
   activePhaseConfig = getActivePhaseConfig();
   
-  // Initialize sensors and actuators
+  Serial.printf("Mushroom Type: %s\n", currentConfig.name);
+  Serial.printf("Initial Phase: %s\n", growthPhaseToString(currentPhase).c_str());
+  
+  // Initialize hardware (no network needed)
   setupSensors();
   setupActuators();
   setupLeds();
-  // setupTime();
-
-  // Initialize WiFi
+  
+  // Initialize WiFi and WAIT for connection
+  Serial.println("\n🌐 Connecting to WiFi...");
   wifiSetup("#Telia-DA3228", "fc736346d1dST2A1", "http://192.168.1.126:3001");
+
+  // Sync time for lighting control
+  setupTime();
 }
 
 void loop() {

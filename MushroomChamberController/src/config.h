@@ -10,6 +10,8 @@ MushroomConfig getMushroomConfig(MushroomType type);
 
 // Function to setup time synchronization
 void setupTime();
+bool isTimeSynced();
+void setManualTime(int year, int month, int day, int hour, int minute, int second);
 PhaseConfig getActivePhaseConfig();
 
 

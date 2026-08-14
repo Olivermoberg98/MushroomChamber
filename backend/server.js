@@ -28,6 +28,15 @@ let latestSensorData = {
 let sensorHistory = [];
 const MAX_HISTORY_SIZE = 100;
 
+// Treat the ESP32 as connected only if we heard from it this recently.
+// timestamp is always an ISO string (or null), so it must be parsed before comparing.
+const DATA_FRESHNESS_MS = 60000;
+
+function isDataFresh() {
+  if (!latestSensorData.timestamp) return false;
+  return Date.now() - new Date(latestSensorData.timestamp).getTime() < DATA_FRESHNESS_MS;
+}
+
 // ====== Middleware ======
 app.use(cors({
   origin: 'http://localhost:5173', // Only needed during local dev
@@ -112,20 +121,10 @@ app.get("/api/data", (req, res) => {
     });
   }
 
-  const now = Date.now();
-  const isDataRecent = latestSensorData.timestamp && 
-    (now - new Date(latestSensorData.timestamp).getTime() < 60000);
-  
-  // Convert timestamp to ISO string if it's a number
-  const responseData = {
+  res.json({
     ...latestSensorData,
-    esp32_connected: isDataRecent,
-    timestamp: typeof latestSensorData.timestamp === 'number' 
-      ? new Date(latestSensorData.timestamp).toISOString()
-      : latestSensorData.timestamp
-  };
-  
-  res.json(responseData);
+    esp32_connected: isDataFresh()
+  });
 });
 
 // GET endpoint to retrieve sensor data history
@@ -142,13 +141,9 @@ app.get("/api/history", (req, res) => {
 
 // GET endpoint to check if we're receiving data from ESP32
 app.get("/api/status", (req, res) => {
-  const now = Date.now();
-  const lastDataTime = latestSensorData.timestamp;
-  const isDataRecent = lastDataTime && (now - lastDataTime < 60000); // within last minute
-  
   res.json({
-    esp32_connected: isDataRecent,
-    last_data_received: lastDataTime ? new Date(lastDataTime).toISOString() : null,
+    esp32_connected: isDataFresh(),
+    last_data_received: latestSensorData.timestamp,
     device_id: latestSensorData.device_id,
     wifi_rssi: latestSensorData.wifi_rssi,
     data_points_stored: sensorHistory.length

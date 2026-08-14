@@ -87,7 +87,9 @@ Note it only reads `targetHumidity` from the active phase config — temperature
 
 API surface: `POST /api/sensor-data` (from ESP32), `GET /api/data`, `GET /api/history`, `GET /api/status`, `GET|POST /api/phase`, `GET /api/phases`, `GET /api/uptime`, `POST /api/update-system`. Anything not matching `/api` falls through to `vite-project/dist/index.html`.
 
-`POST /api/update-system` is a self-updater: it runs `git fetch`/`git pull origin main`, `npm install`, rebuilds the frontend, then calls `process.exit(0)` expecting **PM2** to restart it. It's triggered from a button in the dashboard.
+`POST /api/update-system` is a self-updater triggered by a dashboard button: it fetches, compares `HEAD` to `origin/main`, and if they differ runs `git reset --hard origin/main`, `npm install`, a frontend rebuild, then `process.exit(0)` expecting **PM2** to restart it.
+
+It resets rather than merges deliberately — the deploy host mirrors `origin/main` and must never carry local commits, and a reset survives a rewritten or force-pushed remote history where `git pull` dies with "refusing to merge unrelated histories". The trade-off is that local edits made directly on the Pi are discarded. `npm install` is load-bearing here (dependencies are no longer committed), so the host needs npm registry access or the update leaves it unable to boot.
 
 `latestSensorData.timestamp` is always an ISO string or `null`. Both `/api/data` and `/api/status` report `esp32_connected` through the shared `isDataFresh()` helper — don't re-derive freshness inline, since comparing the raw ISO string against `Date.now()` yields `NaN` and silently reports "disconnected" forever.
 

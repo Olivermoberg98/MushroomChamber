@@ -15,7 +15,7 @@ void setup() {
   Serial.begin(115200);
 
   // Set the mushroom type
-  currentConfig = getMushroomConfig(SHIITAKE);
+  currentConfig = getMushroomConfig(OYSTER);
   activePhaseConfig = getActivePhaseConfig();
   
   Serial.printf("Mushroom Type: %s\n", currentConfig.name);

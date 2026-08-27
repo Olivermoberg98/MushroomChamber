@@ -8,6 +8,9 @@
 #define INLET_FAN_PIN 14
 #define HUMIDIFIER_PIN 15
 
+// Shut actuators down if no valid reading arrives within this window
+#define SENSOR_TIMEOUT 30000
+
 // --- Global Configuration ---
 extern GrowthPhase currentPhase;
 extern PhaseConfig activePhaseConfig;
@@ -36,6 +39,7 @@ struct AdaptiveController {
   unsigned long stabilizeDuration = 300000; // How long to stabilize (5 min)
   unsigned long ventilationDuration = 30000; // How long to ventilate (30 sec)
   unsigned long ventilationInterval = 900000; // How often to ventilate (15 min)
+  float targetVentilationDrop = 3.0f;       // Aim for this %RH drop per vent
   
   // Learning variables
   unsigned long lastVentilationTime = 0;
@@ -45,8 +49,8 @@ struct AdaptiveController {
   float humidityDecayRate = 0.0f;           // %RH per second
   
   // Safety limits
-  float criticalLowHumidity = 70.0f;        // Emergency humidify threshold
-  float criticalHighTemp = 30.0f;           // Emergency ventilation threshold
+  float criticalHumidityMargin = 8.0f;      // Emergency humidify below target minus this
+  unsigned long lastValidReading = 0;
   
   // Statistics for tuning
   int humidificationCycles = 0;
@@ -79,6 +83,7 @@ void setupActuators() {
   
   controller.stateStartTime = millis();
   controller.lastVentilationTime = millis();
+  controller.lastValidReading = millis();
   
   Serial.println("✅ Adaptive controller initialized");
   Serial.printf("Initial parameters:\n");
@@ -122,7 +127,7 @@ void changeState(ControllerState newState, float currentHumidity) {
                   stateToString(newState));
     
     // Record humidity at state transitions for learning
-    if (controller.state == STABILIZING && newState == VENTILATING) {
+    if (newState == VENTILATING) {
       controller.humidityBeforeVentilation = currentHumidity;
     }
     if (controller.state == VENTILATING && newState == RECOVERING) {
@@ -145,6 +150,7 @@ void changeState(ControllerState newState, float currentHumidity) {
 void updateActuators(float rawHumidity, float rawTemperature, float rawPressure) {
   static unsigned long lastUpdate = 0;
   static unsigned long lastStatusLog = 0;
+  static unsigned long lastSensorWarn = 0;
   unsigned long now = millis();
   
   // Rate limit to once per second
@@ -152,7 +158,21 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
     return;
   }
   lastUpdate = now;
-  
+
+  // Reject invalid readings - a single NaN would poison the filter permanently
+  if (isnan(rawHumidity)) {
+    if (now - controller.lastValidReading > SENSOR_TIMEOUT) {
+      setHumidifier(false);
+      setFans(false);
+      if (now - lastSensorWarn > 30000) {
+        Serial.println("⚠️  No valid humidity reading - actuators disabled");
+        lastSensorWarn = now;
+      }
+    }
+    return;
+  }
+  controller.lastValidReading = now;
+
   // Filter humidity for stability
   if (controller.firstReading) {
     controller.filteredHumidity = rawHumidity;
@@ -163,7 +183,6 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
   }
   
   float humidity = controller.filteredHumidity;
-  float temperature = rawTemperature;
   
   unsigned long timeInState = now - controller.stateStartTime;
   unsigned long timeSinceVentilation = now - controller.lastVentilationTime;
@@ -175,10 +194,10 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
   float humidityDelta = humidity - controller.lastHumidity;
   controller.lastHumidity = humidity;
   
-  // --- EMERGENCY OVERRIDES (highest priority) ---
-  
+  // --- EMERGENCY OVERRIDE (highest priority) ---
+
   // Critical low humidity - force humidifier on
-  if (humidity < controller.criticalLowHumidity) {
+  if (humidity < targetHumidity - controller.criticalHumidityMargin) {
     if (controller.state != HUMIDIFYING) {
       Serial.printf("🚨 EMERGENCY: Critical low humidity (%.1f%%) - forcing humidification\n", humidity);
       changeState(HUMIDIFYING, humidity);
@@ -187,18 +206,15 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
     setFans(false);
     return;
   }
-  
-  // Critical high temperature - force ventilation
-  if (temperature > controller.criticalHighTemp) {
-    if (controller.state != VENTILATING) {
-      Serial.printf("🚨 EMERGENCY: High temperature (%.1f°C) - forcing ventilation\n", temperature);
-      changeState(VENTILATING, humidity);
-    }
-    setHumidifier(false);
-    setFans(true);
-    return;
+
+  // Ventilate from any state once overdue - gating this on STABILIZING alone
+  // meant a chamber that never stabilized never got fresh air
+  if (controller.state != VENTILATING && controller.state != RECOVERING &&
+      timeSinceVentilation > controller.ventilationInterval) {
+    Serial.println("🌬️  Scheduled ventilation starting");
+    changeState(VENTILATING, humidity);
   }
-  
+
   // --- STATE MACHINE ---
   
   switch (controller.state) {
@@ -252,11 +268,6 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
         Serial.printf("📈 High humidity (%.1f%%) - extending stabilization\n", humidity);
         controller.stateStartTime = now; // Reset timer
       }
-      // Time for periodic ventilation?
-      else if (timeSinceVentilation > controller.ventilationInterval) {
-        Serial.println("🌬️  Scheduled ventilation starting");
-        changeState(VENTILATING, humidity);
-      }
       break;
     }
     
@@ -270,7 +281,7 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
         controller.lastVentilationTime = now;
         
         // Adaptive ventilation duration based on humidity drop
-        float expectedDrop = targetHumidity * 0.15f; // Expect ~15% relative drop
+        float expectedDrop = controller.targetVentilationDrop;
         float actualDrop = controller.humidityBeforeVentilation - humidity;
         
         if (actualDrop > expectedDrop * 1.5f) {
@@ -311,7 +322,7 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
     Serial.println("\n========== Controller Status ==========");
     Serial.printf("State: %s (%.0f sec)\n", stateToString(controller.state), timeInState / 1000.0f);
     Serial.printf("Environment: H=%.1f%% (target %.1f%%), T=%.1f°C, P=%.0f hPa\n",
-                 humidity, targetHumidity, temperature, rawPressure);
+                 humidity, targetHumidity, rawTemperature, rawPressure);
     Serial.printf("Actuators: Humidifier=%s, Fans=%s\n",
                  controller.humidifierOn ? "ON " : "OFF",
                  controller.fansOn ? "ON" : "OFF");

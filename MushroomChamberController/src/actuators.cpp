@@ -340,6 +340,8 @@ bool isHumidifierOn() { return controller.humidifierOn; }
 bool areFansOn() { return controller.fansOn; }
 float getCurrentFanSpeed() { return controller.fansOn ? 1.0f : 0.0f; }
 bool isVentilating() { return controller.state == VENTILATING; }
+const char* getControllerState() { return stateToString(controller.state); }
+unsigned long getVentilationDuration() { return controller.ventilationDuration; }
 
 // --- Manual Control Functions ---
 void turnFansOn() { setFans(true); }

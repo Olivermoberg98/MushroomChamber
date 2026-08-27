@@ -1,4 +1,5 @@
 #include "wifi_comm.h"
+#include "actuators.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -243,6 +244,12 @@ String createSensorJson(float humidity, float temperature, float pressure) {
   doc["temperature"] = temperature;
   doc["pressure"] = pressure;
   doc["wifi_rssi"] = WiFi.RSSI();
+
+  // Actuator state, so the logged readings can be attributed to a cause
+  doc["state"] = getControllerState();
+  doc["humidifier_on"] = isHumidifierOn();
+  doc["fans_on"] = areFansOn();
+  doc["vent_duration_ms"] = getVentilationDuration();
 
   String output;
   serializeJson(doc, output);

@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -37,6 +38,23 @@ function isDataFresh() {
   return Date.now() - new Date(latestSensorData.timestamp).getTime() < DATA_FRESHNESS_MS;
 }
 
+// ====== Grow Log ======
+// Newline-delimited JSON on disk. sensorHistory above only feeds the dashboard
+// and is lost on restart; this is the durable record for later analysis.
+// Samples are downsampled - logging every POST would be ~1.3M rows a month.
+const LOG_DIR = path.join(__dirname, "data");
+const LOG_FILE = path.join(LOG_DIR, "grow-log.ndjson");
+const LOG_INTERVAL_MS = 30000;
+let lastLogTime = 0;
+
+fs.mkdirSync(LOG_DIR, { recursive: true });
+
+function appendLog(entry) {
+  fs.appendFile(LOG_FILE, JSON.stringify(entry) + "\n", (err) => {
+    if (err) console.error("Failed to write grow log:", err.message);
+  });
+}
+
 // ====== Middleware ======
 app.use(cors({
   origin: 'http://localhost:5173', // Only needed during local dev
@@ -58,7 +76,10 @@ app.use((req, res, next) => {
 // POST endpoint to receive sensor data from ESP32
 app.post("/api/sensor-data", (req, res) => {
   try {
-    const { timestamp, device_id, humidity, temperature, pressure, wifi_rssi } = req.body;
+    const {
+      timestamp, device_id, humidity, temperature, pressure, wifi_rssi,
+      state, humidifier_on, fans_on, vent_duration_ms
+    } = req.body;
     
     // Validate required fields
     if (humidity === undefined || temperature === undefined || pressure === undefined) {
@@ -74,7 +95,11 @@ app.post("/api/sensor-data", (req, res) => {
       pressure: parseFloat(pressure),
       timestamp: new Date().toISOString(),
       device_id: device_id || 'unknown',
-      wifi_rssi: wifi_rssi || null
+      wifi_rssi: wifi_rssi || null,
+      state: state || null,
+      humidifier_on: humidifier_on ?? null,
+      fans_on: fans_on ?? null,
+      vent_duration_ms: vent_duration_ms ?? null
     };
     
     // Add to history
@@ -86,6 +111,11 @@ app.post("/api/sensor-data", (req, res) => {
     // Keep only the last MAX_HISTORY_SIZE entries
     if (sensorHistory.length > MAX_HISTORY_SIZE) {
       sensorHistory = sensorHistory.slice(-MAX_HISTORY_SIZE);
+    }
+
+    if (Date.now() - lastLogTime >= LOG_INTERVAL_MS) {
+      lastLogTime = Date.now();
+      appendLog({ event: "sample", phase: currentPhase, ...latestSensorData });
     }
     
     console.log(`📊 Received sensor data from ${device_id}:`, {
@@ -165,6 +195,7 @@ app.post('/api/phase', (req, res) => {
   }
   currentPhase = phase;
   console.log(`🔄 Phase changed to: ${currentPhase}`);
+  appendLog({ event: "phase_change", timestamp: new Date().toISOString(), phase: currentPhase });
   res.json({ success: true });
 });
 

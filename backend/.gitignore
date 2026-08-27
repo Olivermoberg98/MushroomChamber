@@ -4,3 +4,6 @@ logs
 npm-debug.log*
 
 node_modules
+
+# Grow log - must survive the git reset --hard in /api/update-system
+data/

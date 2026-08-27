@@ -18,6 +18,8 @@ bool isHumidifierOn();
 bool areFansOn();
 float getCurrentFanSpeed();
 bool isVentilating();
+const char* getControllerState();
+unsigned long getVentilationDuration();
 
 // --- Legacy Functions (for backward compatibility) ---
 void turnFansOn();

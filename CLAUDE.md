@@ -91,6 +91,20 @@ API surface: `POST /api/sensor-data` (from ESP32), `GET /api/data`, `GET /api/hi
 
 It resets rather than merges deliberately — the deploy host mirrors `origin/main` and must never carry local commits, and a reset survives a rewritten or force-pushed remote history where `git pull` dies with "refusing to merge unrelated histories". The trade-off is that local edits made directly on the Pi are discarded. `npm install` is load-bearing here (dependencies are no longer committed), so the host needs npm registry access or the update leaves it unable to boot.
 
+### Grow log
+
+`backend/data/grow-log.ndjson` is the only durable record — `sensorHistory` is 100 in-memory entries (~3 min) and dies on restart. One `{"event":"sample"}` row per 30s plus `{"event":"phase_change"}` rows. Gitignored so `/api/update-system`'s `git reset --hard` leaves it alone. Logging starts with the first POST and cannot be turned off.
+
+Pull it off the Pi:
+
+```bash
+scp pi@192.168.50.160:~/MushroomChamber/backend/data/grow-log.ndjson .
+```
+
+```python
+pd.read_json("grow-log.ndjson", lines=True)
+```
+
 `latestSensorData.timestamp` is always an ISO string or `null`. Both `/api/data` and `/api/status` report `esp32_connected` through the shared `isDataFresh()` helper — don't re-derive freshness inline, since comparing the raw ISO string against `Date.now()` yields `NaN` and silently reports "disconnected" forever.
 
 ## Things to know before editing

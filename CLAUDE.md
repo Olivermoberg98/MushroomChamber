@@ -100,4 +100,12 @@ It resets rather than merges deliberately — the deploy host mirrors `origin/ma
 - **`backend/node_modules/` was committed for most of this repo's history** and was untracked in the working tree (see `backend/.gitignore`). Commits before that point contain ~5200 dependency files, so `git log`/`git blame` over old revisions is noisy, and the repo history is still large — filter with pathspecs like `git log -- backend/server.js` rather than scanning broadly.
 - `test/test_wifi_to_server/` contains its own copies of `wifi_comm.cpp/.h` and `mushroom_types.h`, forked from `src/`. Edits to `src/` do not propagate there.
 - The Vite dev server is configured for port 3001 — the same port the Express server binds. Running both means changing one. The server's CORS origin is set to `http://localhost:5173` (Vite's default), not 3001.
-- Lighting depends on NTP: `setupTime()` runs after WiFi connects, hardcoded to GMT+1. If time sync fails, `controlLighting()` reads a garbage hour and the schedule is meaningless.
+- Lighting depends on NTP: `setupTime()` is hardcoded to GMT+1. The `setup()` call always skips, since `wifiSetup()` doesn't block and the connection isn't up yet; the real sync happens in `loop()` on the first connected iteration, guarded by `isTimeSynced()`. If sync fails, `controlLighting()` reads a garbage hour and the schedule is meaningless.
+
+## My working preferences
+
+- Keep responses concise, no unnecessary explanation.
+- Prefer minimal diffs — don't refactor or reformat code beyond what's asked.
+- Never create new files unless explicitly requested.
+- Ask before adding new dependencies.
+- Comments in production style: short, only where the "why" isn't obvious. No verbose or over-explanatory blocks.

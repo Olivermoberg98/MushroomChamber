@@ -26,9 +26,9 @@ void setup() {
   setupActuators();
   setupLeds();
   
-  // Initialize WiFi and WAIT for connection
+  // Non-blocking; wifiRetryLoop() establishes the connection
   Serial.println("\n🌐 Connecting to WiFi...");
-  wifiSetup("#Telia-DA3228", "fc736346d1dST2A1", "http://192.168.1.126:3001");
+  wifiSetup("Oliver & Louise", "hL66RCn4tm'e", "http://192.168.50.160:3001");
 
   // Sync time for lighting control
   setupTime();
@@ -57,6 +57,11 @@ void loop() {
   wifiRetryLoop();
 
   if (wifiConnected()) {
+    // setup() runs before WiFi is up, so sync here instead
+    if (!isTimeSynced()) {
+      setupTime();
+    }
+
     bool success = sendSensorData(humidity, temp, pressure);
     if (success) {
       Serial.println("✅ Data sent successfully!");

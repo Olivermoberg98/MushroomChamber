@@ -47,7 +47,7 @@ export default function Dashboard() {
           temperature: parseFloat(newData.temperature) || data.temperature,
           humidity: parseFloat(newData.humidity) || data.humidity,
           pressure: parseFloat(newData.pressure) || data.pressure,
-          time: new Date().toLocaleTimeString([], {
+          time: new Date().toLocaleTimeString('sv-SE', {
             hour: '2-digit', 
             minute:'2-digit', 
             second:'2-digit'
@@ -111,7 +111,7 @@ export default function Dashboard() {
           temperature: parseFloat(item.temperature),
           humidity: parseFloat(item.humidity),
           pressure: parseFloat(item.pressure),
-          time: new Date(item.timestamp).toLocaleTimeString([], {
+          time: new Date(item.timestamp).toLocaleTimeString('sv-SE', {
             hour: '2-digit', 
             minute:'2-digit', 
             second:'2-digit'
@@ -327,7 +327,7 @@ export default function Dashboard() {
               <div className="flex flex-col sm:flex-row gap-4 text-slate-300 text-sm">
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span>Last update: {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Never'}</span>
+                  <span>Last update: {lastUpdate ? lastUpdate.toLocaleTimeString('sv-SE') : 'Never'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Timer className="w-4 h-4" />

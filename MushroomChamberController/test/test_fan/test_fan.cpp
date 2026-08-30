@@ -2,42 +2,36 @@
 
 #ifdef ARDUINO
 #include <Arduino.h>
-#define FAN1_PIN 13
-#define FAN2_PIN 12
-#define FAN3_PIN 14
+#define EXHAUST_FAN_PIN 13
+#define INLET_FAN_PIN 14
 #endif
 
 // Test setup function - called before each test
 void setUp(void) {
     #ifdef ARDUINO
-    pinMode(FAN1_PIN, OUTPUT);
-    pinMode(FAN2_PIN, OUTPUT);
-    pinMode(FAN3_PIN, OUTPUT);
-    digitalWrite(FAN1_PIN, LOW);
-    digitalWrite(FAN2_PIN, LOW);
-    digitalWrite(FAN3_PIN, LOW);
+    pinMode(EXHAUST_FAN_PIN, OUTPUT);
+    pinMode(INLET_FAN_PIN, OUTPUT);
+    digitalWrite(EXHAUST_FAN_PIN, LOW);
+    digitalWrite(INLET_FAN_PIN, LOW);
     #endif
 }
 
 // Test teardown function - called after each test
 void tearDown(void) {
     #ifdef ARDUINO
-    digitalWrite(FAN1_PIN, LOW);
-    digitalWrite(FAN2_PIN, LOW);
-    digitalWrite(FAN3_PIN, LOW);
+    digitalWrite(EXHAUST_FAN_PIN, LOW);
+    digitalWrite(INLET_FAN_PIN, LOW);
     #endif
 }
 
 // === FAN TESTS ===
 void test_fans_turn_on(void) {
     #ifdef ARDUINO
-    digitalWrite(FAN1_PIN, HIGH);
-    digitalWrite(FAN2_PIN, HIGH);
-    digitalWrite(FAN3_PIN, HIGH);
-    delay(100); // Small delay to ensure pins are set
-    TEST_ASSERT_TRUE_MESSAGE(digitalRead(FAN1_PIN), "Fan 1 turned ON successfully");
-    TEST_ASSERT_TRUE_MESSAGE(digitalRead(FAN2_PIN), "Fan 2 turned ON successfully");
-    TEST_ASSERT_TRUE_MESSAGE(digitalRead(FAN3_PIN), "Fan 3 turned ON successfully");
+    digitalWrite(EXHAUST_FAN_PIN, HIGH);
+    digitalWrite(INLET_FAN_PIN, HIGH);
+    
+    TEST_ASSERT_TRUE_MESSAGE(digitalRead(EXHAUST_FAN_PIN), "Exhaust fan turned ON successfully");
+    TEST_ASSERT_TRUE_MESSAGE(digitalRead(INLET_FAN_PIN), "Inlet fan turned ON successfully");
     #else
     TEST_ASSERT_TRUE_MESSAGE(true, "Fans ON test (simulated on native)");
     #endif
@@ -45,13 +39,11 @@ void test_fans_turn_on(void) {
 
 void test_fans_turn_off(void) {
     #ifdef ARDUINO
-    digitalWrite(FAN1_PIN, LOW);
-    digitalWrite(FAN2_PIN, LOW);
-    digitalWrite(FAN3_PIN, LOW);
-    delay(100); // Small delay to ensure pins are set
-    TEST_ASSERT_FALSE_MESSAGE(digitalRead(FAN1_PIN), "Fan 1 turned OFF successfully");
-    TEST_ASSERT_FALSE_MESSAGE(digitalRead(FAN2_PIN), "Fan 2 turned OFF successfully");
-    TEST_ASSERT_FALSE_MESSAGE(digitalRead(FAN3_PIN), "Fan 3 turned OFF successfully");
+    digitalWrite(EXHAUST_FAN_PIN, LOW);
+    digitalWrite(INLET_FAN_PIN, LOW);
+    
+    TEST_ASSERT_FALSE_MESSAGE(digitalRead(EXHAUST_FAN_PIN), "Exhaust fan turned OFF successfully");
+    TEST_ASSERT_FALSE_MESSAGE(digitalRead(INLET_FAN_PIN), "Inlet fan turned OFF successfully");
     #else
     TEST_ASSERT_TRUE_MESSAGE(true, "Fans OFF test (simulated on native)");
     #endif
@@ -63,30 +55,23 @@ void test_fans_sequence(void) {
     
     // Test individual fans
     for(int i = 0; i < 2; i++) {
-        // Fan 1
-        digitalWrite(FAN1_PIN, HIGH);
+        // Exhaust fan
+        digitalWrite(EXHAUST_FAN_PIN, HIGH);
         delay(1000);
-        digitalWrite(FAN1_PIN, LOW);
+        digitalWrite(EXHAUST_FAN_PIN, LOW);
         
-        // Fan 2
-        digitalWrite(FAN2_PIN, HIGH);
+        // Inlet fan
+        digitalWrite(INLET_FAN_PIN, HIGH);
         delay(1000);
-        digitalWrite(FAN2_PIN, LOW);
-        
-        // Fan 3
-        digitalWrite(FAN3_PIN, HIGH);
-        delay(1000);
-        digitalWrite(FAN3_PIN, LOW);
+        digitalWrite(INLET_FAN_PIN, LOW);
     }
     
-    // Test all fans together
-    digitalWrite(FAN1_PIN, HIGH);
-    digitalWrite(FAN2_PIN, HIGH);
-    digitalWrite(FAN3_PIN, HIGH);
+    // Test both fans together
+    digitalWrite(EXHAUST_FAN_PIN, HIGH);
+    digitalWrite(INLET_FAN_PIN, HIGH);
     delay(10000);
-    digitalWrite(FAN1_PIN, LOW);
-    digitalWrite(FAN2_PIN, LOW);
-    digitalWrite(FAN3_PIN, LOW);
+    digitalWrite(EXHAUST_FAN_PIN, LOW);
+    digitalWrite(INLET_FAN_PIN, LOW);
     
     TEST_ASSERT_TRUE_MESSAGE(true, "Fans sequence completed");
     #else

@@ -13,7 +13,7 @@ export default function Dashboard() {
   const [phases, setPhases] = useState(['Incubation', 'Primordia', 'Fruiting']);
   const [currentPhase, setCurrentPhase] = useState("Incubation");
   const [loading, setLoading] = useState(false);
-  const [isConnected, setIsConnected] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateStatus, setUpdateStatus] = useState('');
@@ -29,8 +29,9 @@ export default function Dashboard() {
         const newData = await response.json();
         console.log('Received data:', newData);
         
-        // Update connection status
-        setIsConnected(true);
+        // The server always answers, so a 200 only means the Pi is alive.
+        // esp32_connected is the server's freshness check on the last POST.
+        setIsConnected(newData.esp32_connected === true);
         
         // Always update state with new data (remove mock check)
         setData({

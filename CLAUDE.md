@@ -110,7 +110,7 @@ pd.read_json("grow-log.ndjson", lines=True)
 ## Things to know before editing
 
 - **Network config is hardcoded in source.** SSID, password, and the server URL are literals in `main.cpp:31` and repeated in the `test_wifi_*` test files. Changing networks means editing all of them. There's no secrets file or build flag for this.
-- **Pin assignments are `#define`s** at the top of the module that uses them: fans/humidifier in `actuators.cpp` (13, 12, 14, 15), LED strip in [led.h](MushroomChamberController/src/led.h) (pin 27, 60 LEDs), BME280 I2C address in `sensors.cpp` (0x76).
+- **Pin assignments are `#define`s** at the top of the module that uses them: fans/humidifier in `actuators.cpp` (exhaust 13, inlet 14, humidifier 15), LED strip in [led.h](MushroomChamberController/src/led.h) (pin 27, 60 LEDs), BME280 I2C address in `sensors.cpp` (0x76).
 - **`backend/node_modules/` was committed for most of this repo's history** and was untracked in the working tree (see `backend/.gitignore`). Commits before that point contain ~5200 dependency files, so `git log`/`git blame` over old revisions is noisy, and the repo history is still large — filter with pathspecs like `git log -- backend/server.js` rather than scanning broadly.
 - `test/test_wifi_to_server/` contains its own copies of `wifi_comm.cpp/.h` and `mushroom_types.h`, forked from `src/`. Edits to `src/` do not propagate there.
 - The Vite dev server is configured for port 3001 — the same port the Express server binds. Running both means changing one. The server's CORS origin is set to `http://localhost:5173` (Vite's default), not 3001.

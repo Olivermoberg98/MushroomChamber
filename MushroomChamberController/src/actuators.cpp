@@ -3,8 +3,7 @@
 #include <Arduino.h>
 
 // --- Pin Definitions ---
-#define EXHAUST_FAN1_PIN 13
-#define EXHAUST_FAN2_PIN 12
+#define EXHAUST_FAN_PIN 13
 #define INLET_FAN_PIN 14
 #define HUMIDIFIER_PIN 15
 
@@ -37,7 +36,7 @@ struct AdaptiveController {
   float humidityOvershoot = 3.0f;           // How much to overshoot target
   unsigned long humidifyDuration = 60000;   // How long to humidify (ms)
   unsigned long stabilizeDuration = 300000; // How long to stabilize (5 min)
-  unsigned long ventilationDuration = 30000; // How long to ventilate (30 sec)
+  unsigned long ventilationDuration = 45000; // How long to ventilate (45 sec)
   unsigned long ventilationInterval = 900000; // How often to ventilate (15 min)
   float targetVentilationDrop = 3.0f;       // Aim for this %RH drop per vent
   
@@ -71,13 +70,11 @@ float filterValue(float newValue, float oldValue, float alpha = 0.3f) {
 void setupActuators() {
   Serial.println("Initializing Adaptive State Controller...");
   
-  pinMode(EXHAUST_FAN1_PIN, OUTPUT);
-  pinMode(EXHAUST_FAN2_PIN, OUTPUT);
+  pinMode(EXHAUST_FAN_PIN, OUTPUT);
   pinMode(INLET_FAN_PIN, OUTPUT);
   pinMode(HUMIDIFIER_PIN, OUTPUT);
   
-  digitalWrite(EXHAUST_FAN1_PIN, LOW);
-  digitalWrite(EXHAUST_FAN2_PIN, LOW);
+  digitalWrite(EXHAUST_FAN_PIN, LOW);
   digitalWrite(INLET_FAN_PIN, LOW);
   digitalWrite(HUMIDIFIER_PIN, LOW);
   
@@ -102,11 +99,10 @@ void setHumidifier(bool on) {
 
 void setFans(bool on) {
   if (on != controller.fansOn) {
-    digitalWrite(EXHAUST_FAN1_PIN, on ? HIGH : LOW);
-    digitalWrite(EXHAUST_FAN2_PIN, on ? HIGH : LOW);
+    digitalWrite(EXHAUST_FAN_PIN, on ? HIGH : LOW);
     digitalWrite(INLET_FAN_PIN, on ? HIGH : LOW);
     controller.fansOn = on;
-    Serial.printf("Fans: %s\n", on ? "ON (all)" : "OFF");
+    Serial.printf("Fans: %s\n", on ? "ON (inlet + exhaust)" : "OFF");
   }
 }
 
@@ -290,7 +286,9 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
           Serial.printf("📊 Ventilation too strong - reducing to %lu sec\n", controller.ventilationDuration / 1000);
         } else if (actualDrop < expectedDrop * 0.5f) {
           // Didn't drop enough - increase duration
-          controller.ventilationDuration = min(60000UL, (unsigned long)(controller.ventilationDuration * 1.1f));
+          // Ceiling raised for the single inlet/exhaust pair - one fan pushes
+          // less air per second, so a full exchange needs a longer run
+          controller.ventilationDuration = min(120000UL, (unsigned long)(controller.ventilationDuration * 1.1f));
           Serial.printf("📊 Ventilation too weak - increasing to %lu sec\n", controller.ventilationDuration / 1000);
         }
         

@@ -38,6 +38,8 @@ pasteurise in a bucket, and it fruits at a temperature your chamber can actually
 Come back to shiitake on run #3 once your sterile technique is proven. Everything in this guide
 is written oyster-first, with shiitake notes where they differ.
 
+> **Done** — `main.cpp` now calls `getMushroomConfig(OYSTER)`.
+
 > Two side notes on the config while you are in there: `ENOKI` exists in the `MushroomType` enum
 > but has no `case` in `getMushroomConfig()`, so selecting it silently returns "Generic Mushroom".
 > And the controller only ever reads `targetHumidity` from the phase config — the temperature
@@ -149,11 +151,21 @@ means it behaves like an aggressive supplement, not like bulk. Do not substitute
 **Conclusion:** treat Master's Mix as the aspirational formula, not the starting one. The Swedish
 substrate strategy below gets you most of the yield at a fraction of the cost and hassle.
 
+**The Swedish workaround: beech grill pellets + wheat bran.** Both of Master's Mix's Swedish
+problems are sourcing problems, and grill pellets solve the first one — 100 % *bok* or *ek* sold
+food-grade for pizza ovens is real hardwood at 17–25 kr/kg, not the 30–40 kr/kg specialty price,
+and nothing like the useless softwood *träpellets* from a petrol station. Pair it with 15 % wheat
+bran instead of unobtainable soy hulls and you have a substrate in the same class, from two
+ingredients you can actually buy here. **It needs a pressure cooker** — 15 % bran is well past the
+pasteurisation ceiling in §1.2 — so it is the formula to graduate to, not to start on. See §1.7
+for the unsupplemented, pasteurise-only version you can run today.
+
 ### 1.4 Substrate options ranked for a Gothenburg grower
 
 | # | Formula | Cost | Heat treatment | Best for | Verdict |
 |---|---|---|---|---|---|
-| **1** | **Straw pellets, plain** | **~5 kr/kg** | Pasteurise | Oyster, king oyster | **Start here.** Cheapest, easiest, no pressure cooker |
+| **1** | **Hardwood pellets, plain (beech / alder)** | **~25 kr/kg** | Pasteurise | **All seven.** Start here | **The no-pressure-cooker default.** No added N, so pasteurising is safe |
+| 1b | Straw pellets, plain | ~5 kr/kg *by the sack* | Pasteurise | Oyster, king oyster | Faster for *Pleurotus*, but see the pack-size trap in §1.7 |
 | 2 | Straw pellets + 10–15 % wheat bran | ~6 kr/kg | **Sterilise** | Oyster, all Pleurotus | Big yield jump, needs a pressure cooker |
 | 3 | Birch/oak pellets + 15 % bran | ~35 kr/kg | **Sterilise** | Shiitake, Lion's Mane, Maitake | Required for wood-lovers |
 | 4 | True Master's Mix (hardwood + soy hull) | ~40 kr/kg | **Sterilise** | Everything | Best yields, worst Swedish availability |
@@ -173,11 +185,22 @@ substrate strategy below gets you most of the yield at a fraction of the cost an
 > substrate** — far more than your 65 L chamber will hold at once, so buy one sack and split it
 > with someone, or store it dry. A full pallet (60 × 13 kg) is 6 499 kr if you ever go
 > commercial.
+>
+> **The catch: the 13 kg sack is a *butiksvara*.** Granngården sells it in store only — online
+> you can order a 60-sack pallet or a bigbag, nothing between. Börjes Hästsport carries the same
+> product at 95 kr and is likewise "säljs endast i butik". Neither has a Göteborg store: nearest
+> Granngården is **Kungälv or Kungsbacka**, nearest Börjes is **Kungsbacka**.
+>
+> **So the 5 kr/kg never applies to a hobbyist.** Priced in pack sizes you can actually buy in the
+> city, straw is the 1 kg Fresh Fungi bag at Hornbach — **65 kr/kg**, more than twice the price of
+> beech grill pellets. The cost hack is real only if you are buying by the sack and will drive for
+> it. See §1.7.
 
 The same logic applies to oak: **grill pellets**. Pini 15 kg 100 % oak grill pellets on Amazon.se
 are food-grade oak with no binders, sold for pizza ovens and smokers, and work as mushroom
-substrate at a fraction of the specialty price. Check the bag says 100 % *ek* or *bok* with no
-flavour oils added.
+substrate at a fraction of the specialty price. Check the bag is **100 % lövträ with 0 % fillers**
+and no flavour oils. A *blend* of hardwoods is fine — bok/al, bok/ek — what matters is that no
+conifer (*barrträ*) is in it.
 
 ### 1.5 Hydration — the step most first grows fail on
 
@@ -211,6 +234,105 @@ Too wet is much worse than too dry, and it is the more common error. When in dou
   If you must, keep them under 20 % of the mix and use them the same day they are brewed.
 - **Coir + vermiculite** — the standard bulk substrate in a different corner of the hobby. Poor
   fit for wood-loving gourmet species. Not recommended for your seven.
+
+### 1.7 Run #1, as actually received — oyster, lion's mane and shiitake
+
+Spawn in hand, 1 September 2026: **220 g Oyster, 220 g Lion's Mane, 280 g Shiitake.** That fixes the
+substrate quantities, because spawn rate is the input you size everything else from.
+
+**One substrate for both species: Weber hardwood pellets.**
+
+> **[Weber Alpellets, 8 kg — ~200 kr](https://www.weber.com/IE/en/accessories/fuel/wood-pellets/18290.html)**
+> (Amazon.se). **40 % al (alder) / 60 % bok (beech), 0 % fillers**, FSC, EU-made — clears the §1.4
+> test. **~25 kr/kg.** Weber's [pure bok pellets](https://www.weber.com/GB/en/accessories/18292.html)
+> are equivalent if the alder blend is out of stock.
+>
+> Both woods are right for your species. Beech is the classic: lion's mane and shiitake grow on it
+> in the wild, and it lacks oak's tannins, which slow colonisation slightly. **Alder is a genuine
+> hardwood** — a broadleaf in the birch family, no conifer resins — and the beech/alder pairing is
+> one of the standard recommendations for oyster and lion's mane specifically.
+>
+> **What the alder changes, and it is not much:** alder is less dense than beech (~450–500 against
+> ~720 kg/m³), so it breaks down faster — expect slightly quicker colonisation and slightly fewer
+> late flushes, with the first flush unaffected. Alder also fixes nitrogen (*Frankia* symbiosis) so
+> its wood carries a little more N than most hardwoods; at 40 % of a blend that is nowhere near
+> bran territory, but it nudges the substrate a hair toward "more nutritious, marginally more
+> contamination-friendly." Not enough to change the protocol — just no excuse for slack technique
+> on the supplemented bags.
+>
+> Keep hydration at **1.2–1.4 L/kg** and let the squeeze test decide. Less dense wood takes a touch
+> more water, so aim mid-range rather than low. 8 kg covers this grow eight times over.
+
+**Why not straw for the oyster.** §1.4's cost hack says straw is 5 kr/kg against hardwood's 25 —
+but that price is the **13 kg horse-bedding sack**, an in-store-only *butiksvara* from a shop
+outside Göteborg. Priced as you can actually buy it in the city, straw is the **1 kg Fresh Fungi
+bag at Hornbach: 65 kr/kg**, which is *two and a half times the price of the hardwood*. The cost
+argument for straw inverts completely at the pack sizes available to a one-grow hobbyist.
+
+What you give up is small: *Pleurotus ostreatus* is the straw specialist of its genus and
+colonises straw somewhat faster. Against that, oyster on hardwood is entirely standard — Master's
+Mix (§1.3) is hardwood-based and oyster is its main commercial crop. And running one substrate
+means **one hydration ratio**, which removes a real failure mode: straw takes 1.9 L/kg and wood
+takes 1.2–1.4, and pouring straw's ratio onto wood gives a sodden anaerobic block.
+
+### Quantities
+
+**Seven bags.** Oyster and lion's mane split three ways each across a bran ladder (0 / 5 / 10 %) at
+600 g of pellets per bag; shiitake runs as a single small bag at a proper spawn rate. Full table and
+reasoning in §7.0.
+
+| | Oyster & Lion's Mane, each of 6 | Shiitake, 1 bag |
+|---|---|---|
+| Dry pellets | **600 g** | **600 g** |
+| Vetekli | 0 / 30 / 60 g | **none** |
+| Boiling water (1.3 L/kg total dry) | 780 / 820 / 860 ml | **780 ml** |
+| Block | ~1 380–1 520 g | ~1 380 g |
+| Spawn | **73 g** | **280 g** |
+| Spawn rate | **~5 %** | **~20 %** |
+
+Run #1 therefore uses **4 200 g of the 8 kg bag** and 180 g of vetekli. Every bag takes the same
+600 g of pellets — only the water and the bran differ.
+
+The two spawn rates are a deliberate split. Five percent on the oyster and lion's mane is a chosen
+trade — slower colonisation, more bags, more of the ladder tested — and §7.0 lists what it costs and
+the two free mitigations that buy some of it back. The shiitake gets 20 % because its incubation
+runs 8–16 weeks, and the bag with the longest exposure is the one that can least afford a thin
+spawn rate.
+
+### On the bran
+
+The 90/10 pellets/vetekli mix you first considered is above what boiling water can carry — 10 % is
+double the pasteurisation ceiling in §1.2. Rather than guess where the real ceiling sits in your
+kitchen, run #1 **tests all three points**: 0 % as control, 5 % at the documented ceiling, and 10 %
+deliberately past it, on both oyster and lion's mane.
+
+Three bags per species is what makes that affordable. A failure costs one bag out of three, the
+control guarantees you still grow the species, and the grow log turns a guess into a number for run
+#2. Full protocol in §7.
+
+### Hardwood as the house substrate
+
+A sound long-term default. Shiitake is traditionally grown on beech, *buna*-shimeji literally means
+"beech mushroom", and lion's mane, enoki, maitake and king oyster all take it — as they do alder.
+Oyster is the only
+one of your seven with a meaningfully better alternative, and only if you can buy straw by the sack.
+
+Two limits worth keeping in view:
+
+- **Hardwood does not replace the pressure cooker.** For shiitake, maitake, king oyster and enoki the
+  binding constraint was never which wood — it is the ~15 % bran those species need to yield
+  properly, and that needs 121 °C.
+- **Buy it in bulk once it is the default.** 25 kr/kg is trial-size pricing; 100 % *bok* or *ek*
+  sold in 30 kg drops that substantially.
+
+Oyster and lion's mane can fruit in the chamber **at the same time under the current `OYSTER`
+config** — oyster at 15–21 °C / 88 % RH, lion's mane at 15–20 °C / 88 %, with the same 8–12 h light
+window. **Shiitake cannot join them**: 13 °C / 75 % RH is genuinely incompatible, so it needs the
+chamber to itself and a firmware change when its turn comes, months later (§7.8).
+
+Incubation happens in a closet, not the chamber (§7.4), so none of this matters until the first
+block is fully colonised. Note also §4.1: the SAMLA holds three or four blocks of this size, not
+six — §7.5 covers staggering them.
 
 ---
 
@@ -300,18 +422,25 @@ spot in a cloudy liquid. Note it and move on for now.
   supplemented, and it means the inoculation must be genuinely clean.
 
 **The bucket-pasteurisation method** (no equipment beyond a kettle), which is all you need for
-oyster on straw pellets:
+any *unsupplemented* pellet substrate:
 
 1. Weigh dry pellets into a heat-safe bucket or directly into your grow bag.
-2. Pour on **boiling** water at 1.9 L per kg.
+2. Pour on **boiling** water: **1.2–1.4 L per kg for hardwood**, 1.9 L per kg for straw. The two
+   are not interchangeable — straw's ratio on wood gives a sodden, anaerobic block.
 3. Seal or cover immediately, wrap in a towel or duvet.
 4. Leave 4–12 h (overnight is easiest). The pellets absorb everything and the mass holds
    pasteurisation temperature for hours.
 5. Cool to **under 25 °C** before adding spawn. **Warm substrate kills mycelium** — this is a
    real and common failure. Use a thermometer, not a guess.
 
-Straw pellets are already heat-treated during manufacture, so this is closer to a re-pasteurisation
-than a rescue of raw field straw. It is the reason pellets are so much more reliable than baled straw.
+Pellets of either kind are already heat-treated during manufacture, so this is closer to a
+re-pasteurisation than a rescue of raw field straw. It is the reason pellets are so much more
+reliable than baled straw.
+
+**There is a third option between the two.** *Tyndallisation* — repeated heat cycles spaced ~24 h
+apart, so endospores that survive one cycle germinate and are killed by the next — gets much of the
+way to sterilisation with a stockpot instead of a pressure cooker. It is slow and it is not a
+guarantee, but it is the honest answer for anyone supplementing without 121 °C. Method in §7.2.
 
 ### 3.2 The pressure cooker decision
 
@@ -339,6 +468,40 @@ It costs almost nothing and eliminates the majority of beginner contamination.
 
 Do not buy a laminar flow hood. It is a 5000+ kr answer to a problem a 150 kr box solves at your
 scale.
+
+#### If you do not have a box yet
+
+Two things carry most of the SAB's benefit and cost nothing.
+
+**1. Never put your hands inside a bag.** This is the big one, and it makes the box far less
+critical than it sounds:
+
+- Wipe the outside of the spawn bag with 70 % isopropanol and **cut a corner off it**.
+- Open the substrate bag **just enough to pour through** — a gap, not a mouth. Pour the spawn in.
+- Close it immediately, then **mix by kneading the sealed bag from the outside.** Spawn distributes
+  through the plastic just as well as it does with your hands in it.
+
+Open time falls from minutes to seconds per bag, nothing on your skin ever enters, and you never
+have to pass your hands over an open bag because you never open one properly.
+
+**2. Work in a steamed, settled bathroom.** A small room with no through-draught is the next best
+thing to a box, and steam actively cleans the air — water droplets nucleate on dust and spores and
+carry them to the floor.
+
+1. Clear the room. Wipe the work surface with 70 % isopropanol.
+2. **Run the hot shower hard for ~10 minutes**, door shut, extractor fan **off**.
+3. Turn it off, leave, and let the room sit **20–30 minutes** with the door closed. This is the
+   settling step and skipping it wastes the whole exercise.
+4. Meanwhile wash your arms to the elbows, put on clean clothes, tie hair back. A face mask is
+   worth wearing; if you have none, simply do not talk or breathe over the work.
+5. Re-enter **slowly**. Every quick movement re-suspends what just settled.
+6. Lay a fresh bin bag or clean towel as your work surface — the room will be wet, and you want
+   nothing dripping into a bag. Wipe hands with 70 % IPA and let them air-dry.
+7. Work low, close to the surface, one bag fully closed before the next is opened.
+
+**Improvised boxes**, if you have any of these already: any clear plastic storage tub inverted (it
+does not have to be a SAMLA); a cardboard box laid on its side, working through the open face; or a
+large transparent bag used as a glove bag, with both the substrate and the spawn inside it.
 
 ### 3.4 Sterile technique, condensed
 
@@ -440,17 +603,21 @@ several hours to rehydrate before flush #2. Expect flush #1 ≈ 50–60 % of tot
 
 | Item | Where | Price |
 |---|---|---|
-| Halmpellets Hästströ 13 kg | **Granngården** | **65 kr** |
-| Oyster sawdust spawn | Svamphuset | from 199 kr |
+| Weber lövträpellets 8 kg (alpellets 40/60, or 100 % bok) — **all seven bags** | Amazon.se | **~201 kr** |
+| Vetekli, for the 5 % bags (§7.0) | Granngården / supermarket | ~30 kr |
+| Kitchen scale reading 1 g | Clas Ohlson / IKEA | ~150 kr |
+| Oyster *snabbväxande mycel* 220 g | Svamphuset | from 199 kr |
+| Lion's Mane *snabbväxande mycel* 220 g | Svamphuset | from 199 kr |
+| Shiitake *snabbväxande mycel* 280 g | Svamphuset | from 199 kr |
 | Grow bags | **already owned** | — |
 | 70 % isopropanol / T-röd | Apoteket / paint shop | ~60 kr |
 | Digital thermometer | Biltema / Clas Ohlson | ~80 kr |
-| Second SAMLA for a still-air box | IKEA | ~100 kr |
+| Second SAMLA for a still-air box (or any clear tub) | IKEA / Rusta / Jula | ~50–100 kr |
 | Micropore tape | Apoteket | ~40 kr |
-| **Total** | | **~550 kr** |
+| **Total** | | **~1 265 kr** |
 
-That is a complete, credible first grow for the price of a takeaway dinner for two. It should
-yield 1–1.5 kg of oysters.
+That is a complete, credible first grow for the price of a takeaway dinner for two. The oyster bag
+should yield 1–1.5 kg; treat the lion's mane bag as a bonus, for the reasons in §1.7.
 
 ### Tier 2 — Serious setup (add for supplemented substrate and shiitake)
 
@@ -458,7 +625,7 @@ yield 1–1.5 kg of oysters.
 |---|---|---|
 | Pressure cooker, 23 L, 15 PSI | Blocket / kitchen retailer | 800–2500 kr |
 | Wheat bran (*vetekli*) | Granngården / supermarket | ~30 kr/kg |
-| Oak grill pellets 15 kg (100 % ek) | Amazon.se / grill shop | ~250 kr |
+| Oak/beech grill pellets in bulk (100 % ek/bok) | Amazon.se / grill shop | ~17–25 kr/kg |
 | Rye berries (*rågkärnor*) for own spawn | ICA Maxi / Coop | ~25 kr/kg |
 | Wide-mouth jars for grain spawn | IKEA / Rusta | ~25 kr each |
 | MH-Z19B CO₂ sensor | AliExpress | ~200 kr |
@@ -475,11 +642,16 @@ second chamber so incubation and fruiting run in parallel, cooling for cold-frui
 
 | What | Where | Notes |
 |---|---|---|
-| **Straw pellets, wheat bran, feed** | **Granngården**, incl. Backaplan | The cost hack. Check [granngarden.se/butiker](https://www.granngarden.se/butiker) for current hours |
+| **Substrate — the house default** | **Weber lövträpellets 8 kg, Amazon.se** | **Start here.** Alpellets (40 % al / 60 % bok) or 100 % bok. ~25 kr/kg, covers every species. See §1.7 |
+| Straw pellets, 1 kg, in Göteborg | [HORNBACH](https://www.hornbach.se/varuhusinfo/hornbach-goteborg/), Minelundsvägen 8 | Fresh Fungi, 65 kr/kg. Convenient but the dearest substrate per kg |
+| Straw pellets, 13 kg sack | Granngården / Börjes, Kungälv & Kungsbacka | 5 kr/kg, but **no Göteborg store** and in-store only |
+| Straw pellets, small bags, shipped | [Svamperiet](https://www.svamperiet.se/butik), [Svamphuset](https://svamphuset.com) | 1–5 kg delivered |
+| Wheat bran (*vetekli*), feed | Granngården, supermarkets | Grow #2 ingredient — needs a pressure cooker first |
+| Straw pellets, local feed shop | Tollans Häst & Foder, Aspenvägen 11, Härryda | Feed + ridsport, stocks strö. Small shop — phone ahead |
 | Spawn (5 of your 7 species) | [Svamphuset](https://svamphuset.com), online | Swedish, organic grain, fast shipping |
 | Spawn + Swedish growing guide | [Skymnäs Svamp](https://skymnassvamp.se) | Good Swedish-language *Odlingsguiden* |
 | Substrate + accessories | [Svamperiet](https://www.svamperiet.se/butik) | Compare before ordering |
-| Oak grill pellets | Amazon.se, grill retailers | Verify 100 % ek/bok, no flavour oils |
+| Hardwood pellets (beech/alder/oak) | Amazon.se, grill retailers | Verify **100 % lövträ, 0 % fillers** — blends are fine, conifers are not. Weber alpellets and bok both confirmed clean |
 | SAMLA boxes | IKEA Bäckebol / Kållered | Chamber + still-air box |
 | Isopropanol / T-röd | Apoteket, paint shops | 70 %, not 99 % |
 | Thermometers, tubing, fans | Biltema, Clas Ohlson, Jula | |
@@ -488,37 +660,296 @@ second chamber so incubation and fruiting run in parallel, cooling for cold-frui
 
 ---
 
-## 7. First grow — an 8-week timeline
+## 7. Run #1 — the exact protocol
 
-**Week 0 — prep**
-Change firmware to `OYSTER`. Order spawn. Buy a sack of straw pellets. Build the still-air box.
-Confirm the chamber holds 85–90 % RH with nothing in it — debug the hardware on an empty box,
-not on a live grow.
+Seven bags, three species, one substrate. Written for exactly what is on the table on
+**1 September 2026**: 220 g oyster spawn, 220 g lion's mane, 280 g shiitake, an 8 kg bag of Weber
+alpellets, vetekli, a kettle, and no pressure cooker.
 
-**Week 1 — inoculate**
-Weigh pellets into the bag. Boiling water at 1.9 L/kg. Seal, wrap, leave overnight. Next day
-confirm **under 25 °C**, then add spawn at **10–15 %** inside the SAB. Mix thoroughly, seal, tape
-the filter patch.
+### 7.0 The seven bags
 
-**Weeks 1–3 — incubation**
-Set phase to `Incubation`. **24 °C, 70 % RH, dark.** A warm cupboard beats the chamber here — the
-chamber is more useful for fruiting. Check for contamination every few days; do not open the bag.
-Expect full white colonisation in 14–21 days.
+Oyster and lion's mane each split three ways across a **bran ladder** — 0 %, 5 %, 10 % — so one
+grow answers the supplementation question at three points instead of guessing. Shiitake runs alone,
+plain, on its own timeline.
 
-**Week 3–4 — consolidation and pinning**
-Let it go fully white, then **3–5 more days** to consolidate. Impatience here is the second most
-common failure after over-hydration. Then set phase to `Primordia`: **13 °C if you can manage it,
-93 % RH, light on**. Cut a slit or X in the bag. Pins appear in 3–7 days.
+| Bag | Species | Bran | Pellets | Vetekli | Water | Block | Spawn | Rate |
+|---|---|---|---|---|---|---|---|---|
+| **O1** | Oyster | 0 % | 600 g | — | 780 ml | ~1 380 g | 73 g | 5.3 % |
+| **O2** | Oyster | 5 % | 600 g | 30 g | 820 ml | ~1 450 g | 73 g | 5.0 % |
+| **O3** | Oyster | 10 % | 600 g | 60 g | 860 ml | ~1 520 g | 73 g | 4.8 % |
+| **L1** | Lion's Mane | 0 % | 600 g | — | 780 ml | ~1 380 g | 73 g | 5.3 % |
+| **L2** | Lion's Mane | 5 % | 600 g | 30 g | 820 ml | ~1 450 g | 73 g | 5.0 % |
+| **L3** | Lion's Mane | 10 % | 600 g | 60 g | 860 ml | ~1 520 g | 73 g | 4.8 % |
+| **S1** | Shiitake | **0 %** | 600 g | — | 780 ml | ~1 380 g | **280 g** | **20.3 %** |
 
-**Week 5–6 — fruiting**
-Set phase to `Fruiting`: **18 °C, 88 % RH, 8–12 h light, maximum fresh air.** Fruits double daily.
-Harvest when cap edges are still curled down — typically 5–7 days from pinning.
+**Totals:** 4 200 g of pellets (just over half the 8 kg bag), 180 g of vetekli, all 718 g of spawn.
+Every bag takes **600 g of pellets** — only the water and the bran differ.
 
-**Weeks 6–8 — further flushes**
-Rest, optionally soak the block, return to fruiting conditions. Expect 2–3 flushes total, then
-compost the spent block (it makes excellent garden mulch, and often fruits once more outdoors).
+Bran percentages are of *pellet* weight. Water is **1.3 L per kg of total dry matter**, pellets
+plus bran — which is why the supplemented bags take slightly more.
 
----
+#### Why the shiitake is different
+
+Shiitake gets **no bran and a 20 % spawn rate**, and that is deliberate. It is the hardest of your
+seven species (§0.1), and its incubation runs **8–16 weeks** against the oyster's few weeks. Every
+extra week is another week of exposure, so the one bag where contamination has the most time to find
+a way in is the one bag that gets a proper spawn rate and no nitrogen to feed on.
+
+**Use all 280 g of the shiitake spawn on one full-size bag.** Spawn rate is exactly the lever that
+counters a long incubation, and shiitake spawn has no alternative use — it cannot go into an oyster
+bag, and it does not store well. Holding some back saves nothing. The extra pellets cost about
+10 kr, the effort is identical (it is one bag either way), and 280 g into a 1 380 g block is a
+genuine 20 % rate rather than a token one. If it works, you want a block worth harvesting.
+
+#### On the 5 % spawn rate
+
+You chose 5 % on the oyster and lion's mane, knowing it is slow. Two consequences to plan around
+rather than argue about:
+
+- **It roughly doubles colonisation time.** Timelines in §7.4 already reflect this.
+- **It compounds with the bran.** Low spawn means a long exposure window; bran means something worth
+  contaminating. O3 and L3 at 10 % bran are the two bags carrying both risks at once — expect them
+  to be the ones that fail, and treat that as the experiment working, not as a disaster.
+
+Two things partly buy the penalty back, and both are free:
+
+- **Thermal mass.** With no stockpot, the insulated overnight hold *is* your heat treatment, and a
+  1 400 g block holds >65 °C far longer than a 400 g one. Your larger bags genuinely pasteurise
+  better.
+- **Geometry — the one that matters most.** Colonisation speed is set by how far mycelium has to
+  travel. **Flatten every block to 4–5 cm thick**, spread across the bag, rather than letting it sit
+  as a fat lump. At 5 % spawn this is worth more than anything else you can do for free.
+
+### 7.1 Day 0 — tonight
+
+- Confirm the closet sits at **23–25 °C** with a thermometer left in it for a few hours. That is
+  your incubator and it is at the right temperature; verify rather than assume.
+- Put a **tray or shallow tub** in the closet for the bags to stand in. Seven bags means one may
+  leak, and you want that contained and off your clothes.
+- Wipe the still-air box down (§3.3) so it is ready.
+- Lay out and label seven bags now: **O1 O2 O3 L1 L2 L3 S1**, each with the date and its bran %.
+  Label before anything is wet. Colonised oyster, lion's mane and shiitake look identical.
+- Check the chamber is running and logging (§7.5 — you will not need it for weeks, but debug it on
+  an empty box, never on a live grow).
+
+### 7.2 Day 1 — hydrate and pasteurise
+
+Work **one bag at a time**, start to finish, before opening the next.
+
+#### What the bag is
+
+You want a **filter-patch grow bag** — a heat-tolerant polypropylene bag with a small white
+rectangular patch bonded into one face. That patch is a 0.2 µm filter: it lets the block breathe
+while blocking spores, and it is the reason the bag can stay shut for eight weeks. Everything below
+assumes one.
+
+*No filter patch?* Cut a 2 cm slit high on one face and cover it, generously, with **micropore
+tape** (§5). Same job, slightly less reliable. Never use a sealed bag with no gas exchange at all —
+the mycelium suffocates in its own CO₂.
+
+#### The steps
+
+1. **Stand the bag in a bucket or a tall pot.** An empty filter bag is floppy and will tip over the
+   moment there is hot water in it. The bucket is a stand, nothing more — the substrate never
+   touches it.
+2. **Roll the top 10 cm of the bag down into a cuff**, like a shirt sleeve. This keeps the sealing
+   surface clean and dry while you work. Pellets or water on the fold is what makes a seal leak.
+3. **Weigh 600 g of pellets straight into the bag.**
+4. **Add the bran dry** — 30 g into O2 and L2, 60 g into O3 and L3, none into O1, L1 or S1 — and
+   shake it through the pellets before any water goes in. Dry mixing distributes it far better than
+   stirring a wet mass ever will.
+5. **Pour the water at a hard rolling boil**, at the volume in §7.0. Not hot-tap, not "boiled a
+   minute ago". Pour into the centre, not down the side.
+6. **Unroll the cuff and close it immediately.** Fold the top over on itself **three or four times**
+   in roughly 3 cm folds — one fold is not a seal — and hold it shut with **two binder clips** (the
+   black office kind), one at each end of the fold. Clothes pegs are too weak; they pop open as the
+   bag flexes.
+7. **Leave the air in.** Do not squeeze the headspace out today. That trapped hot air and steam is
+   part of your heat treatment, and this hold is the only heat treatment these bags get.
+8. **Stand it upright for 20–30 minutes.** The pellets burst, swell and drink the water. Moving it
+   before that just sloshes near-boiling water at your fold.
+9. **Then lay it flat and press it out to 4–5 cm thick**, spread across the width of the bag, while
+   the mass is still soft and will take a shape. Do this now; in an hour it sets and will not move.
+10. **Stack all seven bags together and insulate the pile.** A cooler box, or the pile wrapped in a
+    duvet or sleeping bag. Bags share heat — a stack holds temperature far longer than seven bags
+    sitting apart, which is why they go under one cover rather than one each. **Hold 8–12 hours;
+    overnight is easiest.**
+
+> **Without a stockpot, this single hot-hold is your entire heat treatment.** There is no second
+> chance at it, so over-insulate rather than under-insulate. If you later acquire a large pot, §3.1
+> describes tyndallisation — three 90-minute steam cycles 24 h apart — which is the proper answer
+> for supplemented substrate and would change the odds on O3 and L3 considerably.
+
+### 7.3 Day 2 — inoculate
+
+- **Confirm under 25 °C with a thermometer pushed into the centre of a block.** A bag that feels
+  cool through the plastic can still be 40 °C inside, and warm substrate kills mycelium. This is a
+  real and common failure, not a formality. If in doubt, wait another few hours.
+- **Squeeze test** (§1.5): a few drops, not a stream. The bran bags hold more water than the plain
+  ones, so check O2/O3 and L2/L3 individually — **err dry**. Wet plus nitrogen is how you get
+  bacteria instead of mushrooms, and those are precisely the bags at risk.
+- **Prepare everything before you open anything.** Bags lined up and labelled, clips to hand, spawn
+  bags wiped down with 70 % isopropanol and a corner cut off each. Every second a bag sits open is
+  the only risk you are actually managing here.
+- **Work in the still-air box** if you have one: wipe it, let it settle **10 minutes**, then open
+  anything. **If you do not have one, use the pour-and-knead method and a steamed bathroom — both
+  in §3.3.** Do not delay a cooled, pasteurised bag to go shopping for a tub; every extra hour
+  favours whatever survived the hot-hold.
+- **Never put your hands inside a bag.** Open the substrate bag just enough to pour through, pour,
+  close it. Hands stay outside, always.
+- **73 g of spawn into each of O1–O3 and L1–L3; all 280 g into S1.**
+- **Mix obsessively — through the plastic.** Close the bag first, then knead and squeeze until the
+  spawn is evenly through the block. At 5 % spawn every grain is a separate colonisation front and
+  distribution *is* your colonisation speed, so spend twice as long as feels necessary. Doing it
+  sealed costs you nothing and removes the longest exposure in the whole process.
+- **Now press most of the air out**, unlike yesterday. Gently flatten the bag against the block so
+  the plastic sits on the substrate, then fold and clip as before — three or four folds, two binder
+  clips. Less headspace means less condensation and less room for anything airborne to circulate.
+  Leave the **filter patch clear and unobstructed**; never fold across it or tape over it.
+- Re-flatten to 4–5 cm and lay the bag down **filter patch facing up**, so substrate and condensation
+  cannot block it.
+- Do S1 **first**, while the box is cleanest. It is the bag you can least afford to lose and the one
+  with the longest exposure ahead of it.
+
+Once a bag is closed on day 2, **it stays closed** until it is fully colonised and ready to cut for
+fruiting. Every opening is a fresh exposure, and there is nothing inside you can fix by looking.
+
+### 7.4 Incubation — the closet, weeks 1–8
+
+Bags go in the **closet at 23–25 °C, dark**, not in the chamber. This is correct and it is what
+§0.2 recommends: the chamber's value is humidity control at fruiting, and incubation just wants
+warmth, darkness and to be left alone. Set the dashboard phase to `Incubation` anyway so the log
+has a marker.
+
+Expected colonisation at 5 % spawn and 24 °C:
+
+| Bag | Expect | Worry after |
+|---|---|---|
+| O1 — oyster, 0 % | 30–45 days | 55 days |
+| O2 — oyster, 5 % | 28–40 days *if it takes* | see below |
+| O3 — oyster, 10 % | 25–38 days *if it takes* | see below |
+| L1 — lion's mane, 0 % | 35–55 days | 65 days |
+| L2 / L3 — lion's mane, bran | 30–50 days *if they take* | see below |
+| **S1 — shiitake** | **8–16 weeks** | 20 weeks |
+
+Two patterns to read here. The bran bags should colonise **faster** than their controls if the
+pasteurisation held — that is the whole point of supplementing. And the alder fraction (§1.7) pulls
+everything toward the fast end. Slower than these ranges usually means the closet is cooler than you
+measured, not that something is wrong.
+
+**Failure shows up early, and it looks like bacteria, not mould.** O3 and L3 are the ones to watch.
+In the **first 5–10 days**, before mycelium covers anything:
+
+- A **sour, rancid or sharply sweet smell** through the filter patch — the clearest early signal.
+- **Wet, slimy grey or yellow patches** with no fluffy texture.
+- Substrate visibly **darker and wetter** than the day you sealed it.
+
+Green *Trichoderma* (§8) is a later and different failure. Either way: **discard the bag sealed,
+outdoors, unopened.** Do not try to rescue it, do not open it in the flat, and do not open it near
+the other six. Then log it — that is a clean result, not a wasted bag.
+
+**A little condensation on the inside of the bag is normal** — expect it, especially in the first
+week. Water actually *pooling* in the bottom means the block went in too wet; there is nothing to be
+done about it now, so note it and adjust the hydration next run.
+
+Check every few days. **Do not open a healthy bag to look.**
+
+### 7.5 Capacity — you have more blocks than chamber
+
+§4.1 is the constraint nobody plans for: a 65 L SAMLA holds **3–4 blocks of this size**, and you
+will have six, plus the shiitake later. You cannot fruit them all at once.
+
+This solves itself if you let it:
+
+- **A fully colonised block waits happily for weeks** in the closet, and the extra consolidation
+  time improves it. There is no rush.
+- Colonisation will finish at different times anyway — bran bags first if they take, lion's mane
+  last.
+- So **fruit in batches of three**, in the order they finish. First three colonised go into the
+  chamber; the rest stay in the closet until the chamber is free.
+- Keep each batch to **one species where you can**. Oyster and lion's mane can share the chamber
+  (both fruit near 18 °C / 88 % under the `OYSTER` config), but harvesting is simpler when a batch
+  behaves as one.
+
+### 7.6 Consolidation and pinning
+
+Let a block go **fully white**, then give it **3–5 more days** to consolidate. Impatience here is
+the second most common failure after over-hydration.
+
+Then move it to the chamber and set phase to `Primordia`.
+
+- **Oyster (O1–O3)** — target is 13 °C, and §0.2 is blunt that you cannot get there in a heated
+  flat. Two workarounds: a **12–24 h stint in the fridge** before it goes in the chamber is a clean
+  cold shock, and from mid-October a balcony or unheated room does it for free. Then 93 % RH, light
+  on. Cut a slit or X. Pins in 3–7 days.
+- **Lion's Mane (L1–L3)** — no cold shock needed; it pins readily at 15–18 °C, which you can hold.
+  Cut **one** hole, ~4–5 cm, and let it fruit from that single site rather than everywhere at once.
+  Humidity matters more for lion's mane than the temperature drop does.
+
+### 7.7 Fruiting
+
+Set phase to `Fruiting`: **18 °C, 88 % RH, 8–12 h light, maximum fresh air.**
+
+- **Oyster** — fruits double daily. Harvest while cap edges are still **curled down**, usually 5–7
+  days from pinning. Flat or upturned caps mean you waited too long.
+- **Lion's Mane** — harvest while the spines are **short and the flesh is pure white**. Yellowing or
+  browning means over-ripe and bitter. Typically 7–10 days from pinning.
+
+CO₂ is what your build under-serves (§4.2). Long stems with small caps on the oyster, or a
+coral-like branching lion's mane instead of a compact ball, both mean **too little fresh air** — not
+too little humidity.
+
+Rest each block after a flush, optionally soak it, return to fruiting conditions. Expect 2–3
+flushes, then compost the spent block.
+
+### 7.8 The shiitake — a separate, much longer project
+
+S1 is not part of the same grow. Plan it as its own thing:
+
+| Stage | When | What |
+|---|---|---|
+| Incubation | **Sept → Nov/Dec** | Closet, 24–25 °C, dark. 8–16 weeks. Do not disturb |
+| Browning | **+2–4 weeks** | The block turns brown and forms a leathery skin. This is correct and expected, not contamination. Give it light and leave it sealed |
+| Fruiting | **Dec → Feb** | 13 °C, 75 % RH — needs the chamber to itself |
+
+At 600 g of pellets and a 20 % spawn rate this is a full-size block, not a trial — if it comes
+through the winter it is a real harvest.
+
+**The timing is accidentally ideal.** §0.2 says shiitake at 13 °C is impossible in a heated flat
+and recommends fruiting it in the cold half of the Swedish year. Starting today, S1 becomes ready
+in **December or January**, when an unheated room or glassed balcony in Gothenburg sits at 8–16 °C.
+You get the cooling for free, exactly as §0.2 hoped.
+
+Two things to remember months from now:
+
+- **Change the firmware to `getMushroomConfig(SHIITAKE)`** before fruiting it. Shiitake wants
+  13 °C / 75 % RH against oyster's 18 °C / 88 % — genuinely incompatible, so it cannot share the
+  chamber with an oyster batch.
+- **Shiitake needs a shock to fruit.** Soak the browned block in cold water for 12–24 h, then put
+  it into fruiting conditions.
+
+### 7.9 What to record, and what it tells you
+
+Weigh **every harvest** and compute BE per bag (§1.2). The grow log captures chamber conditions
+automatically, but it cannot weigh mushrooms — that part is on you, and without it the whole bran
+ladder tells you nothing.
+
+Log for each bag: date sealed, date fully colonised, date of first pin, and fresh weight per flush.
+
+Then read the ladder:
+
+- **All three levels colonised clean, 10 % fastest and heaviest** → your pasteurisation is better
+  than the literature predicts. Push to 15 % *with* a pressure cooker and stop worrying.
+- **0 % and 5 % fine, 10 % failed** → textbook result, and the guide's ceiling (§1.2) is right for
+  your kitchen. Run 5 % as standard until you own a *tryckkokare*.
+- **Only 0 % survived** → pasteurisation alone cannot carry bran here. Keep the vetekli for the day
+  the pressure cooker arrives.
+- **Oyster survived where lion's mane did not, at the same bran level** → not a bran result. That is
+  oyster's contamination tolerance carrying it, and it says your technique is the variable to work
+  on, not the formula.
+- **Everything colonised but slowly, with thin yields** → the 5 % spawn rate, exactly as expected.
+  The fix next time is more spawn, not more bran — and §2.4 shows how to make your own so it stops
+  being the scarce input.
 
 ## 8. Troubleshooting
 
@@ -528,7 +959,8 @@ compost the spent block (it makes excellent garden mulch, and often fruits once 
 | No pins after full colonisation | No trigger | Cold shock, raise humidity, ensure light, cut the bag |
 | Fuzzy white "mould" on pins | **Usually healthy aerial mycelium** | Raise humidity, increase FAE. Rarely a real problem |
 | Green mould | *Trichoderma* | Discard sealed, **outdoors**. Review sterile technique |
-| Sour smell, slimy | Substrate too wet | Discard; less water next time |
+| **Sour/rancid smell, slimy grey patches, in the first 5–10 days** | **Bacterial bloom** — supplemented substrate that outran its heat treatment | Discard sealed, **outdoors, unopened**. Sterilise, do not pasteurise, next time (§1.2) |
+| Sour smell later, no slime | Substrate too wet | Discard; less water next time |
 | Colonisation stalls | Too cold / too dry / weak spawn | Check temp is 24 °C; check hydration |
 | Dry, cracked cap surfaces | Humidity too low | Check humidifier and RH sensor calibration |
 | Mushrooms abort, go yellow/brown | Humidity crash or CO₂ spike | Check the humidity state machine is cycling |
@@ -542,11 +974,15 @@ Rough per-kilo cost of fresh oyster mushrooms, at 75 % BE, one 2 kg block:
 
 | Line | Cost |
 |---|---|
-| Straw pellets (~0.65 kg dry) | ~3 kr |
+| Hardwood pellets (~0.85 kg dry @ 25 kr/kg) | ~21 kr |
 | Spawn at 10 % (amortised, bought) | ~30 kr |
 | Electricity, water | ~5 kr |
-| **Per block (~1.5 kg fresh over all flushes)** | **~38 kr** |
-| **Per kg fresh** | **~25 kr/kg** |
+| **Per block (~1.5 kg fresh over all flushes)** | **~56 kr** |
+| **Per kg fresh** | **~37 kr/kg** |
+
+Straw by the sack would put substrate at ~3 kr and the total near 25 kr/kg — that gap is the real
+price of the pack-size trap in §1.7, and it only closes if you buy 13 kg at a time and drive for
+it. Buying hardwood pellets in 30 kg rather than 8 kg narrows most of it without the trip.
 
 Gourmet oyster mushrooms retail in Gothenburg at roughly 200–400 kr/kg. Once you make your own
 grain spawn, the marginal cost drops under 10 kr/kg. The economics are genuinely good — the

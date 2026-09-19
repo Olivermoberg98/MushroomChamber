@@ -78,7 +78,8 @@ app.post("/api/sensor-data", (req, res) => {
   try {
     const {
       timestamp, device_id, humidity, temperature, pressure, wifi_rssi,
-      state, humidifier_on, fans_on, vent_duration_ms
+      state, humidifier_on, fans_on, inlet_fan_on, exhaust_fan_on, vent_duration_ms,
+      target_temperature, target_humidity
     } = req.body;
     
     // Validate required fields
@@ -99,7 +100,11 @@ app.post("/api/sensor-data", (req, res) => {
       state: state || null,
       humidifier_on: humidifier_on ?? null,
       fans_on: fans_on ?? null,
-      vent_duration_ms: vent_duration_ms ?? null
+      inlet_fan_on: inlet_fan_on ?? null,
+      exhaust_fan_on: exhaust_fan_on ?? null,
+      vent_duration_ms: vent_duration_ms ?? null,
+      target_temperature: target_temperature ?? null,
+      target_humidity: target_humidity ?? null
     };
     
     // Add to history
@@ -166,6 +171,134 @@ app.get("/api/history", (req, res) => {
     data: limitedHistory,
     total: sensorHistory.length,
     latest: latestSensorData.timestamp
+  });
+});
+
+// ====== Trends ======
+// sensorHistory holds ~3 minutes of 2s samples, nowhere near the 1h/6h/24h the
+// dashboard wants, so these views read back from the durable grow log instead.
+const RANGE_MS = { "1h": 3600e3, "6h": 6 * 3600e3, "24h": 24 * 3600e3 };
+const TREND_BUCKETS = 240;
+// 24h of 30s samples is well under 1 MB, but the log grows without bound, so
+// cap the tail read rather than pulling a months-old file into memory.
+const LOG_TAIL_BYTES = 8 * 1024 * 1024;
+
+function readRecentLog(sinceMs) {
+  let fd;
+  try {
+    fd = fs.openSync(LOG_FILE, "r");
+  } catch {
+    return []; // nothing logged yet
+  }
+
+  try {
+    const size = fs.fstatSync(fd).size;
+    const length = Math.min(size, LOG_TAIL_BYTES);
+    const buf = Buffer.alloc(length);
+    fs.readSync(fd, buf, 0, length, size - length);
+
+    const lines = buf.toString("utf8").split("\n");
+    // A tail read can begin mid-record, so drop a leading fragment.
+    if (length < size) lines.shift();
+
+    const rows = [];
+    for (const line of lines) {
+      if (!line) continue;
+      let entry;
+      try {
+        entry = JSON.parse(line);
+      } catch {
+        continue; // a torn final line while the ESP32 is mid-append
+      }
+      const t = Date.parse(entry.timestamp);
+      if (!Number.isFinite(t) || t < sinceMs) continue;
+      rows.push({ ...entry, t });
+    }
+    return rows;
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+const mean = (xs) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
+const round = (v, p) => (v === null ? null : Math.round(v * 10 ** p) / 10 ** p);
+
+app.get("/api/trends", (req, res) => {
+  const range = RANGE_MS[req.query.range] ? req.query.range : "1h";
+  const to = Date.now();
+  const from = to - RANGE_MS[range];
+
+  const rows = readRecentLog(from);
+  const samples = rows.filter((r) => r.event === "sample");
+
+  // Never bucket finer than the log samples. At 1h / 240 buckets a bucket is 15s
+  // against a 30s log interval, so every other bucket lands empty and a line
+  // drawn with connectNulls off has no two adjacent points to join.
+  const bucketMs = Math.max(RANGE_MS[range] / TREND_BUCKETS, LOG_INTERVAL_MS * 1.5);
+  const bucketCount = Math.ceil(RANGE_MS[range] / bucketMs);
+  const buckets = new Map();
+
+  for (const s of samples) {
+    const key = Math.floor((s.t - from) / bucketMs);
+    let b = buckets.get(key);
+    if (!b) {
+      b = { temp: [], humidity: [], pressure: [], fanOn: 0, humOn: 0, n: 0 };
+      buckets.set(key, b);
+    }
+    // A dead sensor logs null, which must stay a gap in the chart rather than
+    // being averaged in as zero.
+    if (Number.isFinite(s.temperature)) b.temp.push(s.temperature);
+    if (Number.isFinite(s.humidity)) b.humidity.push(s.humidity);
+    if (Number.isFinite(s.pressure)) b.pressure.push(s.pressure);
+    if (s.fans_on) b.fanOn++;
+    if (s.humidifier_on) b.humOn++;
+    b.n++;
+  }
+
+  const points = [];
+  for (let i = 0; i < bucketCount; i++) {
+    const b = buckets.get(i);
+    points.push({
+      t: Math.round(from + i * bucketMs),
+      temperature: b ? round(mean(b.temp), 2) : null,
+      humidity: b ? round(mean(b.humidity), 2) : null,
+      pressure: b ? round(mean(b.pressure), 2) : null,
+      // Fraction of each bucket the actuator was on, so downsampling a 24h view
+      // still shows short bursts instead of dropping them between samples.
+      fan_duty: b && b.n ? round(b.fanOn / b.n, 3) : null,
+      humidifier_duty: b && b.n ? round(b.humOn / b.n, 3) : null
+    });
+  }
+
+  // Duty is measured against samples actually logged, not wall clock, so an
+  // offline stretch reads as missing rather than as the actuator being off.
+  const summarise = (key) => {
+    if (!samples.length) return null;
+    let on = 0;
+    let cycles = 0;
+    for (let i = 0; i < samples.length; i++) {
+      if (!samples[i][key]) continue;
+      on++;
+      if (i === 0 || !samples[i - 1][key]) cycles++;
+    }
+    return {
+      dutyPct: round((on / samples.length) * 100, 1),
+      onSeconds: Math.round(on * (LOG_INTERVAL_MS / 1000)),
+      cycles
+    };
+  };
+
+  res.json({
+    range,
+    from: new Date(from).toISOString(),
+    to: new Date(to).toISOString(),
+    sampleCount: samples.length,
+    coveragePct: round((samples.length / (RANGE_MS[range] / LOG_INTERVAL_MS)) * 100, 1),
+    points,
+    actuators: { fans: summarise("fans_on"), humidifier: summarise("humidifier_on") },
+    phaseChanges: rows
+      .filter((r) => r.event === "phase_change")
+      .map((r) => ({ t: r.t, phase: r.phase }))
   });
 });
 

@@ -9,6 +9,7 @@
 
 // Shut actuators down if no valid reading arrives within this window
 #define SENSOR_TIMEOUT 30000
+#define FAN_STAGGER_MS 250
 
 // --- Global Configuration ---
 extern GrowthPhase currentPhase;
@@ -31,6 +32,10 @@ struct AdaptiveController {
   // Actuator states
   bool humidifierOn = false;
   bool fansOn = false;
+  // Tracked per pin so the dashboard reports each fan, even though the control
+  // logic currently drives the pair together
+  bool inletFanOn = false;
+  bool exhaustFanOn = false;
   
   // Adaptive parameters (will self-tune)
   float humidityOvershoot = 3.0f;           // How much to overshoot target
@@ -100,7 +105,10 @@ void setHumidifier(bool on) {
 void setFans(bool on) {
   if (on != controller.fansOn) {
     digitalWrite(EXHAUST_FAN_PIN, on ? HIGH : LOW);
+    controller.exhaustFanOn = on;
+    delay(FAN_STAGGER_MS); // stagger so both motors don't draw inrush together
     digitalWrite(INLET_FAN_PIN, on ? HIGH : LOW);
+    controller.inletFanOn = on;
     controller.fansOn = on;
     Serial.printf("Fans: %s\n", on ? "ON (inlet + exhaust)" : "OFF");
   }
@@ -336,6 +344,8 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
 // --- Status Functions ---
 bool isHumidifierOn() { return controller.humidifierOn; }
 bool areFansOn() { return controller.fansOn; }
+bool isInletFanOn() { return controller.inletFanOn; }
+bool isExhaustFanOn() { return controller.exhaustFanOn; }
 float getCurrentFanSpeed() { return controller.fansOn ? 1.0f : 0.0f; }
 bool isVentilating() { return controller.state == VENTILATING; }
 const char* getControllerState() { return stateToString(controller.state); }

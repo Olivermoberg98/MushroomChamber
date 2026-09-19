@@ -11,6 +11,7 @@ extern MushroomConfig mushroomconfig;
 
 void setupLeds() {
   FastLED.addLeds<WS2812B, LED_PIN, GRB>(leds, NUM_LEDS);
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, LED_MAX_MILLIAMPS);
   FastLED.clear();
   FastLED.show();
 }

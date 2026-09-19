@@ -3,6 +3,11 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include "mushroom_types.h"
+
+// Owned by main.cpp; reported so the dashboard can draw the target band without
+// the server keeping its own copy of the species tables
+extern PhaseConfig activePhaseConfig;
 
 // WiFi configuration
 static WiFiConfig config;
@@ -27,7 +32,12 @@ void wifiSetup(const char* ssid, const char* password, const char* serverUrl) {
   lastError = "";
 
   WiFi.mode(WIFI_STA);
-  
+
+  // Association is the biggest current draw on the board; trading a few dB of
+  // uplink margin for a lower peak keeps a marginal supply from collapsing
+  WiFi.setTxPower(WIFI_POWER_13dBm);
+  WiFi.setSleep(true);
+
   Serial.print("WiFi setup complete for SSID: ");
   Serial.println(config.ssid);
   delay(1000);
@@ -249,7 +259,12 @@ String createSensorJson(float humidity, float temperature, float pressure) {
   doc["state"] = getControllerState();
   doc["humidifier_on"] = isHumidifierOn();
   doc["fans_on"] = areFansOn();
+  doc["inlet_fan_on"] = isInletFanOn();
+  doc["exhaust_fan_on"] = isExhaustFanOn();
   doc["vent_duration_ms"] = getVentilationDuration();
+
+  doc["target_temperature"] = activePhaseConfig.targetTemperature;
+  doc["target_humidity"] = activePhaseConfig.targetHumidity;
 
   String output;
   serializeJson(doc, output);

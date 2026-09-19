@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <esp_system.h>
 #include "sensors.h"
 #include "actuators.h"
 #include "led.h"
@@ -13,6 +14,12 @@ PhaseConfig activePhaseConfig;
 
 void setup() {
   Serial.begin(115200);
+
+  // A supply that sags under load resets the ESP32 rather than reporting an
+  // error, so name the cause here instead of leaving it to guesswork
+  esp_reset_reason_t resetReason = esp_reset_reason();
+  Serial.printf("Reset reason: %d%s\n", (int)resetReason,
+                resetReason == ESP_RST_BROWNOUT ? " (BROWNOUT - supply sagged)" : "");
 
   // Set the mushroom type
   currentConfig = getMushroomConfig(OYSTER);

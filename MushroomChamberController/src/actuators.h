@@ -16,6 +16,8 @@ void setHumidifier(bool on);
 // --- Status Query Functions ---
 bool isHumidifierOn();
 bool areFansOn();
+bool isInletFanOn();
+bool isExhaustFanOn();
 float getCurrentFanSpeed();
 bool isVentilating();
 const char* getControllerState();

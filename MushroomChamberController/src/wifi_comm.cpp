@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <esp_system.h>
 #include "mushroom_types.h"
 
 // Owned by main.cpp; reported so the dashboard can draw the target band without
@@ -19,6 +20,10 @@ static unsigned long lastAttemptTime = 0;
 static unsigned int currentRetries = 0;
 static const unsigned long DEFAULT_RETRY_INTERVAL = 10000; // 10 seconds
 static const unsigned int DEFAULT_MAX_RETRIES = 5;
+// A router reboot outlasts the retry budget above, so the failed state has to
+// expire rather than latch.
+static const unsigned long FAILED_RETRY_INTERVAL = 60000;
+static unsigned int reconnectCount = 0;
 
 void wifiSetup(const char* ssid, const char* password, const char* serverUrl) {
   config.ssid = String(ssid);
@@ -105,11 +110,25 @@ void wifiRetryLoop() {
       break;
       
     case WiFiStatus::CONNECTION_FAILED:
-      // Stay in failed state until manual reset
+      // Latching here strands the node until someone power-cycles it: a brief
+      // outage is enough to lose it for the rest of the run.
+      if (now - lastAttemptTime >= FAILED_RETRY_INTERVAL) {
+        Serial.println("Retrying WiFi after backoff");
+        currentStatus = WiFiStatus::DISCONNECTED;
+        currentRetries = 0;
+        lastAttemptTime = now;
+      }
       break;
-      
+
     case WiFiStatus::CONNECTED:
-      // This case is handled above
+      // Reached only once WiFi.status() has stopped reporting a link, so the
+      // connection dropped under us. Without this the machine sits in CONNECTED
+      // forever and never calls WiFi.begin() again.
+      Serial.println("WiFi connection lost - reconnecting");
+      reconnectCount++;
+      currentStatus = WiFiStatus::DISCONNECTED;
+      currentRetries = 0;
+      lastAttemptTime = now;
       break;
   }
 }
@@ -120,6 +139,10 @@ bool wifiConnected() {
 
 WiFiStatus getWiFiStatus() {
   return currentStatus;
+}
+
+unsigned int getReconnectCount() {
+  return reconnectCount;
 }
 
 String getWiFiStatusString() {
@@ -265,6 +288,14 @@ String createSensorJson(float humidity, float temperature, float pressure) {
 
   doc["target_temperature"] = activePhaseConfig.targetTemperature;
   doc["target_humidity"] = activePhaseConfig.targetHumidity;
+
+  // Health counters. uptime_ms dropping back marks a silent reboot, free_heap
+  // sliding marks a leak, and wifi_reconnects climbing marks a flaky link.
+  doc["uptime_ms"] = millis();
+  doc["free_heap"] = ESP.getFreeHeap();
+  doc["min_free_heap"] = ESP.getMinFreeHeap();
+  doc["reset_reason"] = (int)esp_reset_reason();
+  doc["wifi_reconnects"] = reconnectCount;
 
   String output;
   serializeJson(doc, output);

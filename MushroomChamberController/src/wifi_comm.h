@@ -27,6 +27,7 @@ void wifiSetup(const char* ssid, const char* password, const char* serverUrl);
 void wifiRetryLoop();
 bool wifiConnected();
 WiFiStatus getWiFiStatus();
+unsigned int getReconnectCount();
 String getWiFiStatusString();
 
 // HTTP communication functions

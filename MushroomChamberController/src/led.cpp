@@ -16,8 +16,11 @@ void setupLeds() {
   FastLED.show();
 }
 
+// File scope so it can be reported: the strip is the largest switched load on
+// the board and had no telemetry at all.
+static bool lightOn = false;
+
 void controlLighting(const PhaseConfig& currentConfig) {
-  static bool lightOn = false;
 
   // Get current time
   time_t now;
@@ -44,6 +47,10 @@ void controlLighting(const PhaseConfig& currentConfig) {
     setLEDColor(CRGB::Black);
     lightOn = false;
   }
+}
+
+bool isLightOn() {
+  return lightOn;
 }
 
 void setLEDColor(CRGB color) {

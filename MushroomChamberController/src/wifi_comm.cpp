@@ -4,7 +4,10 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <esp_system.h>
+#include <time.h>
 #include "mushroom_types.h"
+#include "led.h"
+#include "config.h"
 
 // Owned by main.cpp; reported so the dashboard can draw the target band without
 // the server keeping its own copy of the species tables
@@ -296,6 +299,18 @@ String createSensorJson(float humidity, float temperature, float pressure) {
   doc["min_free_heap"] = ESP.getMinFreeHeap();
   doc["reset_reason"] = (int)esp_reset_reason();
   doc["wifi_reconnects"] = reconnectCount;
+
+  // The strip is the biggest switched load and had no telemetry, so an LED
+  // switch-on could never be lined up against a failure. local_hour also
+  // exposes the unsynced-clock case, where the schedule runs off a junk hour
+  // and the strip can come on at any time.
+  doc["led_on"] = isLightOn();
+  doc["time_synced"] = isTimeSynced();
+  time_t nowEpoch;
+  struct tm timeinfo;
+  time(&nowEpoch);
+  localtime_r(&nowEpoch, &timeinfo);
+  doc["local_hour"] = timeinfo.tm_hour;
 
   String output;
   serializeJson(doc, output);

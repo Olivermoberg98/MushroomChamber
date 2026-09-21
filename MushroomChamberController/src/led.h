@@ -15,5 +15,6 @@
 void setupLeds();
 void controlLighting(const PhaseConfig& config);
 void setLEDColor(CRGB color);
+bool isLightOn();
 
 #endif 

@@ -80,7 +80,8 @@ app.post("/api/sensor-data", (req, res) => {
       timestamp, device_id, humidity, temperature, pressure, wifi_rssi,
       state, humidifier_on, fans_on, inlet_fan_on, exhaust_fan_on, vent_duration_ms,
       target_temperature, target_humidity,
-      uptime_ms, free_heap, min_free_heap, reset_reason, wifi_reconnects
+      uptime_ms, free_heap, min_free_heap, reset_reason, wifi_reconnects,
+      led_on, time_synced, local_hour
     } = req.body;
     
     // Validate required fields
@@ -110,7 +111,10 @@ app.post("/api/sensor-data", (req, res) => {
       free_heap: free_heap ?? null,
       min_free_heap: min_free_heap ?? null,
       reset_reason: reset_reason ?? null,
-      wifi_reconnects: wifi_reconnects ?? null
+      wifi_reconnects: wifi_reconnects ?? null,
+      led_on: led_on ?? null,
+      time_synced: time_synced ?? null,
+      local_hour: local_hour ?? null
     };
     
     // Add to history

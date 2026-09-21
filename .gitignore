@@ -1,0 +1,3 @@
+# Grow logs pulled off the Pi for analysis. The live one is ignored by
+# backend/.gitignore; this covers copies scp'd into the repo root.
+grow-log*.ndjson

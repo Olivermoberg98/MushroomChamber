@@ -133,6 +133,11 @@ void changeState(ControllerState newState, float currentHumidity) {
     // Record humidity at state transitions for learning
     if (newState == VENTILATING) {
       controller.humidityBeforeVentilation = currentHumidity;
+      // Stamp the clock on entry, not only on completion. A run cut short by the
+      // emergency override never reached the completion branch, so ventilation
+      // stayed overdue and re-fired the instant humidity climbed back out of the
+      // emergency band - straight into the fans again.
+      controller.lastVentilationTime = millis();
     }
     if (controller.state == VENTILATING && newState == RECOVERING) {
       controller.humidityAfterVentilation = currentHumidity;
@@ -212,10 +217,18 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
   }
 
   // Ventilate from any state once overdue - gating this on STABILIZING alone
-  // meant a chamber that never stabilized never got fresh air
+  // meant a chamber that never stabilized never got fresh air.
+  //
+  // Venting below target just fights the humidifier: the fans pull humidity
+  // down, the humidifier drags it back up, and the two trade off indefinitely.
+  // Hold off until humidity has recovered - but not forever, because the grow
+  // still needs fresh air even if the chamber never quite reaches target.
+  bool ventOverdue = timeSinceVentilation > controller.ventilationInterval;
+  bool ventUrgent = timeSinceVentilation > controller.ventilationInterval * 3;
   if (controller.state != VENTILATING && controller.state != RECOVERING &&
-      timeSinceVentilation > controller.ventilationInterval) {
-    Serial.println("🌬️  Scheduled ventilation starting");
+      ventOverdue && (humidity >= targetHumidity || ventUrgent)) {
+    Serial.printf("🌬️  Scheduled ventilation starting (%.1f%%%s)\n",
+                  humidity, ventUrgent && humidity < targetHumidity ? ", overdue" : "");
     changeState(VENTILATING, humidity);
   }
 

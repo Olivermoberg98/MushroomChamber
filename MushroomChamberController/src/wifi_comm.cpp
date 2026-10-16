@@ -284,6 +284,7 @@ String createSensorJson(float humidity, float temperature, float pressure) {
   // Actuator state, so the logged readings can be attributed to a cause
   doc["state"] = getControllerState();
   doc["humidifier_on"] = isHumidifierOn();
+  doc["humidifier_fault"] = isHumidifierFault();
   doc["fans_on"] = areFansOn();
   doc["inlet_fan_on"] = isInletFanOn();
   doc["exhaust_fan_on"] = isExhaustFanOn();

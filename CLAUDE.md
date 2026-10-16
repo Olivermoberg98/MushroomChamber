@@ -75,11 +75,11 @@ An unrecognized string silently falls back to `INCUBATION`.
 
 ### The adaptive actuator controller
 
-[actuators.cpp](MushroomChamberController/src/actuators.cpp) is the most involved part of the firmware. It's a four-state machine — `HUMIDIFYING → STABILIZING → VENTILATING → RECOVERING` — layered under two emergency overrides (critical low humidity, critical high temp) that `return` early and bypass the state machine entirely.
+[actuators.cpp](MushroomChamberController/src/actuators.cpp) is the most involved part of the firmware. It's a four-state machine — `HUMIDIFYING → STABILIZING → VENTILATING → RECOVERING`. The humidifier runs in 20s-on/40s-off pulses (continuous fog pooled as condensation), and is latched off as `humidifier_fault` after 8 min of fogging without humidity rising (empty tank), retrying every 30 min. Ventilation runs every 5 min regardless of humidity.
 
 It self-tunes: `humidifyDuration` is learned from how long humidification actually took, and `ventilationDuration` is nudged up or down based on the observed humidity drop per ventilation cycle. Humidity is exponentially filtered (`alpha = 0.2`) before any decision. `updateActuators()` rate-limits itself to once per second internally, so calling it more often is harmless.
 
-Note it only reads `targetHumidity` from the active phase config — temperature and pressure targets/tolerances are currently unused by the controller; the thresholds it acts on (`criticalLowHumidity`, `criticalHighTemp`) are controller fields, not phase config.
+Note it only reads `targetHumidity` from the active phase config — temperature and pressure targets/tolerances are currently unused by the controller.
 
 ### Server
 

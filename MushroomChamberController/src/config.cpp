@@ -39,7 +39,7 @@ MushroomConfig getMushroomConfig(MushroomType type) {
       return {
         "Oyster",
         { 24.0, 2.0, 70.0, 5.0, 1013.0, 8.0, 0, 0, CRGB::Black },           // Incubation: DARK
-        { 13.0, 2.0, 93.0, 5.0, 1013.0, 8.0, 8, 12, CRGB(100, 150, 255) },  // Primordia: Cool blue-white
+        { 13.0, 2.0, 90.0, 5.0, 1013.0, 8.0, 8, 12, CRGB(100, 150, 255) },  // Primordia: Cool blue-white
         { 18.0, 3.0, 88.0, 5.0, 1013.0, 8.0, 8, 12, CRGB(100, 150, 255) }   // Fruiting: Cool blue-white
       };
 

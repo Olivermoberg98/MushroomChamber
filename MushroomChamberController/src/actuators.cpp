@@ -38,13 +38,27 @@ struct AdaptiveController {
   bool exhaustFanOn = false;
   
   // Adaptive parameters (will self-tune)
-  float humidityOvershoot = 3.0f;           // How much to overshoot target
+  float humidityOvershoot = 1.0f;           // How much to overshoot target
   unsigned long humidifyDuration = 60000;   // How long to humidify (ms)
   unsigned long stabilizeDuration = 300000; // How long to stabilize (5 min)
   unsigned long ventilationDuration = 45000; // How long to ventilate (45 sec)
-  unsigned long ventilationInterval = 900000; // How often to ventilate (15 min)
+  unsigned long ventilationInterval = 300000; // How often to ventilate (5 min) - oysters need heavy FAE
+  float wetVentMargin = 5.0f;               // Vent early above target plus this
+  unsigned long wetVentGap = 120000;        // Min time between wet vents (2 min)
   float targetVentilationDrop = 3.0f;       // Aim for this %RH drop per vent
-  
+
+  // Continuous fog outruns what the air absorbs and pools as condensation
+  unsigned long pulseOn = 20000;
+  unsigned long pulseOff = 40000;
+
+  // Dry tank detection
+  unsigned long humidifyOnTime = 0;         // Fogging time without humidity rising
+  float humidifyLow = 100.0f;               // Lowest humidity since it last rose
+  unsigned long dryTankLimit = 480000;      // Give up after 8 min of fogging
+  unsigned long dryTankRetry = 1800000;     // Probe again every 30 min
+  bool humidifierFault = false;
+  unsigned long faultTime = 0;
+
   // Learning variables
   unsigned long lastVentilationTime = 0;
   float humidityBeforeVentilation = 0.0f;
@@ -53,7 +67,6 @@ struct AdaptiveController {
   float humidityDecayRate = 0.0f;           // %RH per second
   
   // Safety limits
-  float criticalHumidityMargin = 8.0f;      // Emergency humidify below target minus this
   unsigned long lastValidReading = 0;
   
   // Statistics for tuning
@@ -114,6 +127,14 @@ void setFans(bool on) {
   }
 }
 
+void pulseHumidifier(unsigned long now) {
+  if (controller.humidifierFault) {
+    setHumidifier(false);
+    return;
+  }
+  setHumidifier(now % (controller.pulseOn + controller.pulseOff) < controller.pulseOn);
+}
+
 const char* stateToString(ControllerState state) {
   switch (state) {
     case HUMIDIFYING: return "HUMIDIFYING";
@@ -166,6 +187,7 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
   if (now - lastUpdate < 1000) {
     return;
   }
+  unsigned long elapsed = now - lastUpdate;
   lastUpdate = now;
 
   // Reject invalid readings - a single NaN would poison the filter permanently
@@ -203,32 +225,38 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
   float humidityDelta = humidity - controller.lastHumidity;
   controller.lastHumidity = humidity;
   
-  // --- EMERGENCY OVERRIDE (highest priority) ---
-
-  // Critical low humidity - force humidifier on
-  if (humidity < targetHumidity - controller.criticalHumidityMargin) {
-    if (controller.state != HUMIDIFYING) {
-      Serial.printf("🚨 EMERGENCY: Critical low humidity (%.1f%%) - forcing humidification\n", humidity);
-      changeState(HUMIDIFYING, humidity);
-    }
-    setHumidifier(true);
-    setFans(false);
-    return;
+  // --- DRY TANK DETECTION ---
+  // Fogging that never lifts humidity means the tank is empty. Running on
+  // regardless burns out the transducer and holds the chamber in HUMIDIFYING.
+  if (humidity >= targetHumidity - 2.0f || humidity > controller.humidifyLow + 3.0f) {
+    controller.humidifyOnTime = 0;
+    controller.humidifyLow = humidity;
+  } else {
+    controller.humidifyLow = min(controller.humidifyLow, humidity);
+    if (controller.humidifierOn) controller.humidifyOnTime += elapsed;
+  }
+  if (!controller.humidifierFault && controller.humidifyOnTime > controller.dryTankLimit) {
+    Serial.println("🚱 Humidifier isn't raising humidity - tank empty? Disabled");
+    controller.humidifierFault = true;
+    controller.faultTime = now;
+    setHumidifier(false);
+  } else if (controller.humidifierFault && now - controller.faultTime > controller.dryTankRetry) {
+    Serial.println("💧 Retrying humidifier");
+    controller.humidifierFault = false;
+    controller.humidifyOnTime = 0;
   }
 
-  // Ventilate from any state once overdue - gating this on STABILIZING alone
-  // meant a chamber that never stabilized never got fresh air.
-  //
-  // Venting below target just fights the humidifier: the fans pull humidity
-  // down, the humidifier drags it back up, and the two trade off indefinitely.
-  // Hold off until humidity has recovered - but not forever, because the grow
-  // still needs fresh air even if the chamber never quite reaches target.
+  // Fresh air on a fixed schedule regardless of humidity - oysters stall on
+  // CO2 long before a brief humidity dip hurts them. Vents are kept short so
+  // the humidifier only has a small loss to make up.
   bool ventOverdue = timeSinceVentilation > controller.ventilationInterval;
-  bool ventUrgent = timeSinceVentilation > controller.ventilationInterval * 3;
+  // Air near saturation condenses on the bag - vent it out rather than waiting
+  bool tooWet = humidity > targetHumidity + controller.wetVentMargin &&
+                timeSinceVentilation > controller.wetVentGap;
   if (controller.state != VENTILATING && controller.state != RECOVERING &&
-      ventOverdue && (humidity >= targetHumidity || ventUrgent)) {
-    Serial.printf("🌬️  Scheduled ventilation starting (%.1f%%%s)\n",
-                  humidity, ventUrgent && humidity < targetHumidity ? ", overdue" : "");
+      (ventOverdue || tooWet)) {
+    Serial.printf("🌬️  %s ventilation starting (%.1f%%)\n",
+                  tooWet ? "Wet" : "Scheduled", humidity);
     changeState(VENTILATING, humidity);
   }
 
@@ -237,7 +265,7 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
   switch (controller.state) {
     
     case HUMIDIFYING: {
-      setHumidifier(true);
+      pulseHumidifier(now);
       setFans(false);
       
       // Check if we've reached target + overshoot
@@ -257,11 +285,7 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
         
         changeState(STABILIZING, humidity);
       }
-      // Timeout safety (don't humidify forever)
-      else if (timeInState > 180000) { // 3 minutes max
-        Serial.println("⚠️  Humidification timeout - moving to stabilization");
-        changeState(STABILIZING, humidity);
-      }
+      // No timeout - dry tank detection stops a humidifier that isn't working
       break;
     }
     
@@ -309,7 +333,7 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
           // Didn't drop enough - increase duration
           // Ceiling raised for the single inlet/exhaust pair - one fan pushes
           // less air per second, so a full exchange needs a longer run
-          controller.ventilationDuration = min(120000UL, (unsigned long)(controller.ventilationDuration * 1.1f));
+          controller.ventilationDuration = min(60000UL, (unsigned long)(controller.ventilationDuration * 1.1f));
           Serial.printf("📊 Ventilation too weak - increasing to %lu sec\n", controller.ventilationDuration / 1000);
         }
         
@@ -319,10 +343,10 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
     }
     
     case RECOVERING: {
-      setHumidifier(true);
       setFans(false);
-      
-      // Recover until we're back near target
+
+      // Recover until we're back near target. Checked before switching the
+      // humidifier on so a wet vent doesn't pulse it for a tick.
       if (humidity >= targetHumidity - 1.0f) {
         Serial.printf("✅ Recovery complete: %.1f%% (target: %.1f%%)\n", humidity, targetHumidity);
         changeState(STABILIZING, humidity);
@@ -331,6 +355,9 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
       else if (timeInState > 120000) { // 2 minutes max
         Serial.println("⚠️  Recovery timeout - moving to stabilization");
         changeState(STABILIZING, humidity);
+      }
+      else {
+        pulseHumidifier(now);
       }
       break;
     }
@@ -356,6 +383,7 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
 
 // --- Status Functions ---
 bool isHumidifierOn() { return controller.humidifierOn; }
+bool isHumidifierFault() { return controller.humidifierFault; }
 bool areFansOn() { return controller.fansOn; }
 bool isInletFanOn() { return controller.inletFanOn; }
 bool isExhaustFanOn() { return controller.exhaustFanOn; }

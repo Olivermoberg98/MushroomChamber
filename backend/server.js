@@ -78,7 +78,7 @@ app.post("/api/sensor-data", (req, res) => {
   try {
     const {
       timestamp, device_id, humidity, temperature, pressure, wifi_rssi,
-      state, humidifier_on, fans_on, inlet_fan_on, exhaust_fan_on, vent_duration_ms,
+      state, humidifier_on, humidifier_fault, fans_on, inlet_fan_on, exhaust_fan_on, vent_duration_ms,
       target_temperature, target_humidity,
       uptime_ms, free_heap, min_free_heap, reset_reason, wifi_reconnects,
       led_on, time_synced, local_hour
@@ -101,6 +101,7 @@ app.post("/api/sensor-data", (req, res) => {
       wifi_rssi: wifi_rssi || null,
       state: state || null,
       humidifier_on: humidifier_on ?? null,
+      humidifier_fault: humidifier_fault ?? null,
       fans_on: fans_on ?? null,
       inlet_fan_on: inlet_fan_on ?? null,
       exhaust_fan_on: exhaust_fan_on ?? null,

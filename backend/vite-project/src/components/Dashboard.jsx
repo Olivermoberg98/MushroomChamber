@@ -235,6 +235,7 @@ export default function Dashboard() {
           timestamp: newData.timestamp || new Date().toISOString(),
           state: newData.state ?? null,
           humidifier_on: newData.humidifier_on ?? null,
+          humidifier_fault: newData.humidifier_fault ?? null,
           fans_on: newData.fans_on ?? null,
           inlet_fan_on: newData.inlet_fan_on ?? null,
           exhaust_fan_on: newData.exhaust_fan_on ?? null,
@@ -625,7 +626,7 @@ export default function Dashboard() {
           />
           <ActuatorTile
             Icon={CloudDrizzle}
-            label="Humidifier"
+            label={data.humidifier_fault ? "Humidifier - refill water" : "Humidifier"}
             on={data.humidifier_on ?? null}
             available={isConnected && (data.humidifier_on ?? null) !== null}
             duty={trends?.actuators?.humidifier}

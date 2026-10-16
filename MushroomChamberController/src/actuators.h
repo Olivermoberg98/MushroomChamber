@@ -15,6 +15,7 @@ void setHumidifier(bool on);
 
 // --- Status Query Functions ---
 bool isHumidifierOn();
+bool isHumidifierFault();
 bool areFansOn();
 bool isInletFanOn();
 bool isExhaustFanOn();

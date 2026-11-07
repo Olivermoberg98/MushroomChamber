@@ -38,14 +38,15 @@ struct AdaptiveController {
   bool exhaustFanOn = false;
   
   // Adaptive parameters (will self-tune)
-  float humidityOvershoot = 1.0f;           // How much to overshoot target
+  float humidityOvershoot = 2.0f;           // How much to overshoot target
   unsigned long humidifyDuration = 60000;   // How long to humidify (ms)
   unsigned long stabilizeDuration = 300000; // How long to stabilize (5 min)
   unsigned long ventilationDuration = 45000; // How long to ventilate (45 sec)
-  unsigned long ventilationInterval = 300000; // How often to ventilate (5 min) - oysters need heavy FAE
+  // Fewer, longer vents - same fresh air as every 5 min, half the cycling
+  unsigned long ventilationInterval = 600000; // How often to ventilate (10 min) - oysters need heavy FAE
   float wetVentMargin = 5.0f;               // Vent early above target plus this
   unsigned long wetVentGap = 120000;        // Min time between wet vents (2 min)
-  float targetVentilationDrop = 3.0f;       // Aim for this %RH drop per vent
+  float targetVentilationDrop = 6.0f;       // Aim for this %RH drop per vent
 
   // Continuous fog outruns what the air absorbs and pools as condensation
   unsigned long pulseOn = 20000;
@@ -58,6 +59,9 @@ struct AdaptiveController {
   unsigned long dryTankRetry = 1800000;     // Probe again every 30 min
   bool humidifierFault = false;
   unsigned long faultTime = 0;
+
+  // Condensation on the BME280 pins it at 100% regardless of the air
+  bool sensorSaturated = false;
 
   // Learning variables
   unsigned long lastVentilationTime = 0;
@@ -250,14 +254,21 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
   // CO2 long before a brief humidity dip hurts them. Vents are kept short so
   // the humidifier only has a small loss to make up.
   bool ventOverdue = timeSinceVentilation > controller.ventilationInterval;
+  if (controller.sensorSaturated && humidity < 98.0f) {
+    Serial.println("💧 Humidity sensor reading again - wet vents resumed");
+    controller.sensorSaturated = false;
+  }
   // Air near saturation condenses on the bag - vent it out rather than waiting
-  bool tooWet = humidity > targetHumidity + controller.wetVentMargin &&
+  bool tooWet = !controller.sensorSaturated &&
+                humidity > targetHumidity + controller.wetVentMargin &&
                 timeSinceVentilation > controller.wetVentGap;
   if (controller.state != VENTILATING && controller.state != RECOVERING &&
       (ventOverdue || tooWet)) {
     Serial.printf("🌬️  %s ventilation starting (%.1f%%)\n",
                   tooWet ? "Wet" : "Scheduled", humidity);
     changeState(VENTILATING, humidity);
+    // Otherwise the stale time from the previous state ends the vent this tick
+    timeInState = 0;
   }
 
   // --- STATE MACHINE ---
@@ -299,8 +310,9 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
         controller.humidityDecayRate = filterValue(abs(driftRate), controller.humidityDecayRate, 0.1f);
       }
       
-      // If humidity drops too low, restart humidification
-      if (humidity < targetHumidity - 2.0f) {
+      // If humidity drops too low, restart humidification. Band sits at
+      // target-1..target+2 - the old -2..+1 band averaged ~2% under target.
+      if (humidity < targetHumidity - 1.0f) {
         Serial.printf("📉 Humidity dropped to %.1f%% - restarting humidification\n", humidity);
         changeState(HUMIDIFYING, humidity);
       }
@@ -320,7 +332,13 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
       if (timeInState > controller.ventilationDuration) {
         Serial.printf("✅ Ventilation complete (%.1f sec)\n", timeInState / 1000.0f);
         controller.lastVentilationTime = now;
-        
+
+        // Real air drops during a vent; a reading that stays pinned is a wet sensor
+        if (humidity >= 99.5f && !controller.sensorSaturated) {
+          Serial.println("💦 Humidity stuck at 100% through a vent - sensor wet? Wet vents paused");
+          controller.sensorSaturated = true;
+        }
+
         // Adaptive ventilation duration based on humidity drop
         float expectedDrop = controller.targetVentilationDrop;
         float actualDrop = controller.humidityBeforeVentilation - humidity;
@@ -329,7 +347,7 @@ void updateActuators(float rawHumidity, float rawTemperature, float rawPressure)
           // Dropped too much - reduce duration next time
           controller.ventilationDuration = max(15000UL, (unsigned long)(controller.ventilationDuration * 0.9f));
           Serial.printf("📊 Ventilation too strong - reducing to %lu sec\n", controller.ventilationDuration / 1000);
-        } else if (actualDrop < expectedDrop * 0.5f) {
+        } else if (actualDrop < expectedDrop * 0.5f && !controller.sensorSaturated) {
           // Didn't drop enough - increase duration
           // Ceiling raised for the single inlet/exhaust pair - one fan pushes
           // less air per second, so a full exchange needs a longer run

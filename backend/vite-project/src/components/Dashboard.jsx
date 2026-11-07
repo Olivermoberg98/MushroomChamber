@@ -448,8 +448,9 @@ export default function Dashboard() {
       return 'text-red-400';
     }
     if (type === 'pressure') {
-      if (value >= 1005 && value <= 1015) return 'text-green-400';
-      if (value >= 1000 && value <= 1020) return 'text-yellow-400';
+      // Unsealed chamber - this is just the weather, so only flag a broken sensor
+      if (value >= 970 && value <= 1050) return 'text-green-400';
+      if (value >= 950 && value <= 1060) return 'text-yellow-400';
       return 'text-red-400';
     }
     return 'text-gray-400';
